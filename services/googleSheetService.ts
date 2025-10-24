@@ -20,7 +20,6 @@ export const saveToGoogleSheet = async (invoice: Invoice): Promise<void> => {
     invoice.invoiceDate || 'N/A',
     invoice.invoiceTime || 'N/A',
     invoice.totalAmount || 0,
-    invoice.taxAmount || 0,
     JSON.stringify(invoice.lineItems) // Storing complex data as JSON string
   ];
   
