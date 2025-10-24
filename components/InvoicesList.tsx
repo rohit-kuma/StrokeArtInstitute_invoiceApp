@@ -2,6 +2,25 @@ import React, { useState } from 'react';
 import { useInvoices } from '../hooks/useInvoices';
 import { type Invoice } from '../types';
 
+const formatDateForDisplay = (dateString: string | null): string => {
+  if (!dateString) return 'N/A';
+  // Expects dateString in 'YYYY-MM-DD' format
+  try {
+    const date = new Date(dateString + 'T00:00:00'); // Use T00:00:00 to avoid timezone issues
+    if (isNaN(date.getTime())) {
+      // Return original string if the date is invalid
+      return dateString;
+    }
+    const day = date.getDate();
+    const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  } catch (e) {
+    // Fallback to the original string in case of any error
+    return dateString;
+  }
+};
+
 const InvoicesList: React.FC = () => {
     const { invoices, updateInvoice, deleteInvoice, loading } = useInvoices();
     const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
@@ -40,7 +59,7 @@ const InvoicesList: React.FC = () => {
             ...invoices.map(inv => [
                 formatCSVField(inv.vendorName),
                 formatCSVField(inv.invoiceNumber),
-                formatCSVField(inv.invoiceDate),
+                formatCSVField(formatDateForDisplay(inv.invoiceDate)),
                 formatCSVField(inv.invoiceTime),
                 (inv.totalAmount || 0).toFixed(2)
             ].join(','))
@@ -106,7 +125,7 @@ const InvoicesList: React.FC = () => {
                                 <tr key={invoice.id} className="border-b border-gray-200/50 dark:border-dark-border/50">
                                     <td className="p-4 font-medium text-gray-900 dark:text-white">{invoice.vendorName || 'N/A'}</td>
                                     <td className="p-4 text-gray-500 dark:text-gray-400">{invoice.invoiceNumber || 'N/A'}</td>
-                                    <td className="p-4 text-gray-700 dark:text-gray-300">{invoice.invoiceDate || 'N/A'}</td>
+                                    <td className="p-4 text-gray-700 dark:text-gray-300">{formatDateForDisplay(invoice.invoiceDate)}</td>
                                     <td className="p-4 text-gray-700 dark:text-gray-300">{invoice.invoiceTime || 'N/A'}</td>
                                     <td className="p-4 text-right font-semibold text-gray-900 dark:text-white">₹{(invoice.totalAmount || 0).toFixed(2)}</td>
                                     <td className="p-4 text-center">
