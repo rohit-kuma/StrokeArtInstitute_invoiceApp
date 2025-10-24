@@ -1,0 +1,113 @@
+Build a sophisticated, futuristic web application called **InvoiceAI Portal**.
+
+
+
+## Core Functionality
+
+
+
+### 1. Invoice Upload Portal
+
+- Users can drag & drop or upload PDF, DOCX, .txt or image invoices.
+
+- User can also add text input which can be like "received from "Name" Rs 3000" and it should also be parsed.
+
+- User can also speak using a mic button instead of typing and provide details of invoice so that it can be parsed.
+
+- Multiple file upload support with progress bar.
+
+- Clean, minimal dashboard with futuristic UI elements (glassmorphism, subtle gradients, rounded corners).
+
+
+
+### 2. AI Invoice Parsing
+
+- Once uploaded, invoices are automatically sent to an AI model that extracts:
+
+	- Vendor/payee name
+
+	- Invoice number
+
+	- Date
+
+	- Line items (description, quantity, price, subtotal)
+
+	- Taxes & totals
+
+- Display extracted data in a structured, editable table before submission.
+
+
+
+### 3. Database Integration
+
+- Parsed invoice data is saved into a a (e.g., Firebase, Supabase, or PostgreSQL).
+
+- Parsed invoice data is saved into a google sheet name stroke_art_invoice.gsheet
+
+- Users can search, filter, and view past invoices.
+
+- Option to export data as CSV or Excel.
+
+
+
+### 4. User Authentication & Roles
+
+- Secure login/signup with email + OAuth (Google, Microsoft).
+
+- Roles: Admin (full control), Accountant (view/edit), Viewer (read-only).
+
+
+
+### 5. Analytics Dashboard
+
+- Summary of invoices processed this month, total spend, top vendors.
+
+- Charts/graphs for spending trends over time (use a charting library like Recharts or Chart.js).
+
+
+
+### 6. UI/UX Design
+
+- Futuristic, sleek, and professional.
+
+- Dark mode + light mode toggle.
+
+- Smooth animations with Framer Motion.
+
+- Sidebar navigation (Upload, Invoices, Analytics, Settings).
+
+
+
+### 7. Additional Features
+
+- Error handling & notifications (toast messages for success/failure).
+
+- Multi-language support.
+
+- Settings page for managing API keys, export options, and team members.
+
+- AI auto-categorization of invoices by expense type (e.g., utilities, marketing, payroll).
+
+
+
+## Tech Stack (Suggested)
+
+- **Frontend:** React + TailwindCSS + shadcn/ui + Framer Motion
+
+- **Backend:** Node.js/Express or Next.js API routes
+
+- **Database:** Supabase or Firebase Firestore
+
+- **Authentication:** Firebase Auth or Auth0
+
+- **AI Parsing:** Connect to OpenAI/Gemini API for invoice text extraction and structuring
+
+
+
+---
+
+
+
+### Overall Goal
+
+A **beautiful, modern, and futuristic invoice management app** where users can upload invoices, have them automatically parsed by AI, stored in a database, and viewed through a sleek dashboard with analytics and insights.
