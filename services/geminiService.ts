@@ -64,13 +64,17 @@ const invoiceSchema = {
 
 export const parseInvoice = async (input: File[] | string): Promise<Partial<Invoice>> => {
     
+    const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+
     const prompt = `
         You are an expert invoice processing AI. Your task is to accurately extract structured data from the provided content.
         The content could be plain text, an image of an invoice, or a payment receipt.
         
+        The current date is ${today}. Please use this as the reference for "today".
+
         Please extract the following information and return it as a single, valid JSON object that strictly adheres to the provided schema. Do not wrap it in markdown backticks.
         - vendorName: The name of the company or person that was paid. Treat the name in phrases like "received from [Name]", "Paid to [Name]", or "paid by [Name]" as the vendor.
-        - invoiceDate: Format as YYYY-MM-DD. If a relative date like "today" is mentioned, you must resolve it to the current date.
+        - invoiceDate: Format as YYYY-MM-DD. If a relative date like "today" is mentioned, you must resolve it to the current date, which is ${today}.
         - lineItems: For simple payment receipts that only show a total amount, you MUST create a single line item. For example: { "description": "Payment", "quantity": 1, "unitPrice": TOTAL_AMOUNT, "subtotal": TOTAL_AMOUNT }. An empty array is only acceptable if the total amount is zero.
         - totalAmount: The final amount. This value must be a positive number. If you cannot determine a positive amount, return null instead of 0 or a negative number.
 
