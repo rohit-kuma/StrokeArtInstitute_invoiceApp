@@ -21,7 +21,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoice, onComplete }) => {
     if (Math.abs(newTotal - (editedInvoice.totalAmount || 0)) > 0.001) {
       setEditedInvoice(prev => ({ ...prev, totalAmount: newTotal }));
     }
-  }, [editedInvoice.lineItems]);
+  }, [editedInvoice.lineItems, editedInvoice.totalAmount]);
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
