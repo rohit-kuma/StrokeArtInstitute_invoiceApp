@@ -1,9 +1,14 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { type Invoice } from '../types';
 
-// FIX: Per coding guidelines, the API key must be obtained exclusively from `process.env.API_KEY`.
-// The client should not handle missing keys with alerts.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// FIX: Correctly use import.meta.env.VITE_API_KEY for Vite environment variables.
+const apiKey = import.meta.env.VITE_API_KEY;
+if (!apiKey) {
+    // This check is useful for local development, but secrets should be set in production.
+    console.error("VITE_API_KEY is not configured in the environment.");
+}
+
+const ai = new GoogleGenAI({ apiKey: apiKey || '' });
 const modelName = 'gemini-2.5-flash';
 
 /**
