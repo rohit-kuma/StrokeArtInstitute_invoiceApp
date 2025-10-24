@@ -40,7 +40,7 @@ const invoiceSchema = {
     properties: {
         vendorName: { type: Type.STRING, description: 'The name of the company or person being paid. For a receipt that says "Paid to John Doe", the vendor is "John Doe".' },
         invoiceNumber: { type: Type.STRING, description: 'The unique identifier for the invoice. Can be null if not found.' },
-        invoiceDate: { type: Type.STRING, description: 'The date the invoice was issued, in YYYY-MM-DD format. If the text says "today", use today\'s date.' },
+        invoiceDate: { type: Type.STRING, description: 'The date the invoice was issued, in YYYY-MM-DD format. If the input text contains a relative date like "today", you MUST convert it to the current date in YYYY-MM-DD format.' },
         invoiceTime: { type: Type.STRING, description: 'The time the invoice was issued, in HH:MM 24-hour format. Can be null if not present.' },
         lineItems: {
             type: Type.ARRAY,
@@ -69,8 +69,8 @@ export const parseInvoice = async (input: File[] | string): Promise<Partial<Invo
         The content could be plain text, an image of an invoice, or a payment receipt.
         
         Please extract the following information and return it as a single, valid JSON object that strictly adheres to the provided schema. Do not wrap it in markdown backticks.
-        - vendorName: The name of the company or person that was paid. Treat the name in phrases like "received from [Name]", "Paid to [Name]", "paid from [Name]", or "paid by [Name]" as the vendor.
-        - invoiceDate: Format as DD--MMM--YEAR. If the text mentions "today", use the current date.
+        - vendorName: The name of the company or person that was paid. Treat the name in phrases like "received from [Name]", "Paid to [Name]", or "paid by [Name]" as the vendor.
+        - invoiceDate: Format as YYYY-MM-DD. If a relative date like "today" is mentioned, you must resolve it to the current date.
         - lineItems: For simple payment receipts that only show a total amount, you MUST create a single line item. For example: { "description": "Payment", "quantity": 1, "unitPrice": TOTAL_AMOUNT, "subtotal": TOTAL_AMOUNT }. An empty array is only acceptable if the total amount is zero.
         - totalAmount: The final amount. This value must be a positive number. If you cannot determine a positive amount, return null instead of 0 or a negative number.
 
