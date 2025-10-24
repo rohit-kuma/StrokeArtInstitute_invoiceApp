@@ -1,17 +1,9 @@
 import { GoogleGenAI, Type } from '@google/genai';
 import { type Invoice } from '../types';
 
-// In a Vite app, environment variables prefixed with VITE_ are exposed on `import.meta.env`
-const API_KEY = import.meta.env.VITE_API_KEY;
-
-if (!API_KEY) {
-    // This alert will show if the GitHub Secret is not set correctly.
-    alert("API_KEY is not configured. Please set it up to use the AI features.");
-    throw new Error('VITE_API_KEY is not set in environment variables.');
-}
-
-// Initialize the Google Gemini API client
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+// FIX: Per coding guidelines, the API key must be obtained exclusively from `process.env.API_KEY`.
+// The client should not handle missing keys with alerts.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 const modelName = 'gemini-2.5-flash';
 
 /**
@@ -56,7 +48,6 @@ const invoiceSchema = {
                 required: ['description', 'quantity', 'unitPrice', 'subtotal'],
             },
         },
-        taxAmount: { type: Type.NUMBER, description: 'The total amount of tax charged on the invoice. Can be null if not present. Must be a positive number.' },
         totalAmount: { type: Type.NUMBER, description: 'The final, total amount due on the invoice. Must be a positive number.' },
     },
     required: ['vendorName', 'invoiceDate', 'totalAmount', 'lineItems'],
