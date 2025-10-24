@@ -1,0 +1,7 @@
+{
+  "name": "StrokeArtInvoice Portal",
+  "description": "A sophisticated, futuristic web application to upload, parse, and analyze invoices using AI. Users can upload invoices via file, text, or voice, and the app uses Gemini to extract structured data. It features a sleek dashboard, analytics, and data management capabilities.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
