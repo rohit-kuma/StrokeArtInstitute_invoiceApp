@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { type ViewType } from '../types';
@@ -30,8 +29,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, 
   return (
     <aside className={`fixed top-0 left-0 z-40 w-64 h-screen bg-white/10 dark:bg-dark-card/50 backdrop-blur-lg border-r border-gray-200/20 dark:border-dark-border/50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
       <div className="flex justify-between items-center p-4 border-b border-gray-200/10 dark:border-dark-border/30">
-        <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-          InvoiceAI
+        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+          StrokeArtInstituteInvoice
         </h1>
         <button onClick={() => setIsOpen(false)} className="md:hidden p-1 text-gray-500 dark:text-gray-400">
             <CloseIcon />
