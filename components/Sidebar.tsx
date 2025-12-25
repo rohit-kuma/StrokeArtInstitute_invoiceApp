@@ -15,14 +15,14 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, 
 
   const navItems = [
     { id: 'upload', label: 'Upload Portal', icon: <UploadIcon /> },
-    { id: 'invoices', label: 'Invoices', icon: <FileIcon /> },
+    { id: 'invoices', label: 'Invoice History', icon: <FileIcon /> },
     { id: 'analytics', label: 'Analytics', icon: <AnalyticsIcon /> },
   ];
 
   const handleNavClick = (view: ViewType) => {
     setCurrentView(view);
     if (window.innerWidth < 768) { // md breakpoint
-        setIsOpen(false);
+      setIsOpen(false);
     }
   };
 
@@ -33,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, 
           StrokeArtInstituteInvoice
         </h1>
         <button onClick={() => setIsOpen(false)} className="md:hidden p-1 text-gray-500 dark:text-gray-400">
-            <CloseIcon />
+          <CloseIcon />
         </button>
       </div>
       <nav className="flex flex-col justify-between h-[calc(100%-65px)] p-4">
@@ -42,11 +42,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, 
             <li key={item.id}>
               <button
                 onClick={() => handleNavClick(item.id as ViewType)}
-                className={`flex items-center w-full px-4 py-3 my-1 rounded-lg transition-all duration-200 ${
-                  currentView === item.id
+                className={`flex items-center w-full px-4 py-3 my-1 rounded-lg transition-all duration-200 ${currentView === item.id
                     ? 'bg-accent-blue/20 text-accent-blue shadow-glow'
                     : 'hover:bg-gray-200/50 dark:hover:bg-dark-border/50'
-                }`}
+                  }`}
               >
                 <span className="mr-3">{item.icon}</span>
                 {item.label}
@@ -55,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, 
           ))}
         </ul>
         <div className="mt-auto">
-           <button
+          <button
             onClick={toggleTheme}
             className="flex items-center justify-center w-full px-4 py-3 rounded-lg bg-gray-200/50 dark:bg-dark-border/50 hover:bg-gray-300/50 dark:hover:bg-dark-border"
           >

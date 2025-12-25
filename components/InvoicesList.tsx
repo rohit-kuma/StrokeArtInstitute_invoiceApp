@@ -3,22 +3,19 @@ import { useInvoices } from '../hooks/useInvoices';
 import { type Invoice } from '../types';
 
 const formatDateForDisplay = (dateString: string | null): string => {
-  if (!dateString) return 'N/A';
-  // Expects dateString in 'YYYY-MM-DD' format
-  try {
-    const date = new Date(dateString + 'T00:00:00'); // Use T00:00:00 to avoid timezone issues
-    if (isNaN(date.getTime())) {
-      // Return original string if the date is invalid
-      return dateString;
+    if (!dateString) return 'N/A';
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString;
+
+        // Format to YYYY-MM-DD
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    } catch (e) {
+        return dateString;
     }
-    const day = date.getDate();
-    const month = date.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-    const year = date.getFullYear();
-    return `${day}-${month}-${year}`;
-  } catch (e) {
-    // Fallback to the original string in case of any error
-    return dateString;
-  }
 };
 
 const InvoicesList: React.FC = () => {
@@ -30,7 +27,7 @@ const InvoicesList: React.FC = () => {
         updateInvoice(updatedInvoice);
         setEditingInvoice(null);
     };
-    
+
     const handleDeleteConfirm = () => {
         if (deletingInvoiceId) {
             deleteInvoice(deletingInvoiceId);
@@ -85,17 +82,17 @@ const InvoicesList: React.FC = () => {
     if (invoices.length === 0) {
         return (
             <div className="text-center py-10">
-                <h2 className="text-3xl font-bold mb-2">My Invoices</h2>
+                <h2 className="text-3xl font-bold mb-2">Invoice History</h2>
                 <p className="text-gray-500">You haven't saved any invoices yet.</p>
             </div>
         );
     }
-    
+
     return (
         <div className="max-w-7xl mx-auto">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
                 <div>
-                    <h2 className="text-3xl font-bold text-gray-800 dark:text-white">My Invoices</h2>
+                    <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Invoice History</h2>
                     <p className="text-gray-600 dark:text-gray-400">View, edit, and manage your saved invoices.</p>
                 </div>
                 <button
@@ -142,13 +139,13 @@ const InvoicesList: React.FC = () => {
             </div>
 
             {editingInvoice && (
-                <EditModal 
+                <EditModal
                     invoice={editingInvoice}
                     onSave={handleSave}
                     onClose={() => setEditingInvoice(null)}
                 />
             )}
-            
+
             {deletingInvoiceId && (
                 <DeleteConfirmationModal
                     onConfirm={handleDeleteConfirm}
@@ -172,7 +169,7 @@ const EditModal: React.FC<{ invoice: Invoice, onSave: (invoice: Invoice) => void
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
             <div className="bg-gray-100 dark:bg-dark-bg rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <h3 className="text-xl font-bold mb-4">Edit Invoice</h3>
-                
+
                 {/* Simplified form for brevity. A real app might reuse InvoiceTable component */}
                 <div className="space-y-4">
                     <InputField label="Vendor Name" name="vendorName" value={editedInvoice.vendorName || ''} onChange={handleChange} />
@@ -181,7 +178,7 @@ const EditModal: React.FC<{ invoice: Invoice, onSave: (invoice: Invoice) => void
                     {/* Line Items editing can be added here */}
                     <InputField label="Total Amount" name="totalAmount" type="number" value={editedInvoice.totalAmount || 0} onChange={handleChange} />
                 </div>
-                
+
                 <div className="flex justify-end gap-4 mt-6">
                     <button onClick={onClose} className="px-4 py-2 rounded bg-gray-300 dark:bg-dark-border">Cancel</button>
                     <button onClick={() => onSave(editedInvoice)} className="px-4 py-2 rounded bg-accent-blue text-white">Save Changes</button>
