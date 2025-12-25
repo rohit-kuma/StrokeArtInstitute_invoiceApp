@@ -36,7 +36,7 @@ export const useInvoices = () => {
     const currentInvoices = getInvoicesFromStorage();
     const invoiceToAdd = { ...invoice };
 
-    // Auto-increment logic is now centralized here for reliability
+    // Auto-increment logic
     if (!invoiceToAdd.invoiceNumber || invoiceToAdd.invoiceNumber.toLowerCase() === 'null') {
       const maxId = currentInvoices.reduce((max, inv) => {
         const invNum = parseInt(inv.invoiceNumber || '0', 10);
@@ -45,16 +45,29 @@ export const useInvoices = () => {
       invoiceToAdd.invoiceNumber = (maxId + 1).toString();
     }
 
-    const newInvoices = [...currentInvoices, { ...invoiceToAdd, status: 'saved' as const }];
-    saveInvoicesToStorage(newInvoices);
-    setInvoices(newInvoices);
-
-    // After saving locally, sync to Google Sheets
     try {
-      await saveToGoogleSheet(invoiceToAdd);
+      // 1. Sync to Google Sheets immediately
+      const syncedInvoices = await saveToGoogleSheet(invoiceToAdd);
+
+      if (syncedInvoices && syncedInvoices.length > 0) {
+        // 2. Success: Update local storage/state with the FRESH LIST from server
+        // Ensure they are marked as 'saved'
+        const finalInvoices = syncedInvoices.map(inv => ({ ...inv, status: 'saved' as const }));
+        saveInvoicesToStorage(finalInvoices);
+        setInvoices(finalInvoices);
+      } else {
+        // 3. Fallback (empty response): Add locally
+        const newInvoices = [...currentInvoices, { ...invoiceToAdd, status: 'saved' as const }];
+        saveInvoicesToStorage(newInvoices);
+        setInvoices(newInvoices);
+      }
+
     } catch (error) {
-      // Log the error but rethrow so the UI can alert the user
       console.error("Failed to sync invoice to Google Sheets. The data is saved locally.", error);
+      // 4. Error Fallback: Add locally and alert user
+      const newInvoices = [...currentInvoices, { ...invoiceToAdd, status: 'saved' as const }];
+      saveInvoicesToStorage(newInvoices);
+      setInvoices(newInvoices);
       throw error;
     }
 
