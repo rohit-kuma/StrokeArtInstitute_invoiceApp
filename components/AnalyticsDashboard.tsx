@@ -37,23 +37,34 @@ const AnalyticsDashboard: React.FC = () => {
         const dataByMonth: { [key: string]: { name: string, spend: number, dateKey: string } } = {};
 
         invoices.forEach(inv => {
-            if (inv.invoiceDate && inv.invoiceDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                try {
-                    const monthKey = inv.invoiceDate.substring(0, 7); // YYYY-MM
-                    if (!dataByMonth[monthKey]) {
-                        // Manually parse year and month to avoid timezone issues
-                        const year = parseInt(inv.invoiceDate.substring(0, 4));
-                        const monthIndex = parseInt(inv.invoiceDate.substring(5, 7)) - 1;
-                        const date = new Date(year, monthIndex, 1);
+            if (!inv.invoiceDate) return;
 
-                        // Format: "Jan 24"
-                        const monthName = date.toLocaleString('default', { month: 'short', year: '2-digit' });
-                        dataByMonth[monthKey] = { name: monthName, spend: 0, dateKey: monthKey };
-                    }
-                    dataByMonth[monthKey].spend += inv.totalAmount || 0;
-                } catch (e) {
-                    console.error("Invalid date processing for invoice", inv.id);
+            let date: Date | null = null;
+
+            // Strategy 1: strict ISO-like string parsing (safest to avoid timezone shifts)
+            // Matches YYYY-MM-DD start
+            if (typeof inv.invoiceDate === 'string' && inv.invoiceDate.match(/^\d{4}-\d{2}-\d{2}/)) {
+                const year = parseInt(inv.invoiceDate.substring(0, 4));
+                const monthIndex = parseInt(inv.invoiceDate.substring(5, 7)) - 1;
+                date = new Date(year, monthIndex, 1);
+            }
+            // Strategy 2: Fallback to standard JS Date parsing
+            else {
+                const parsed = new Date(inv.invoiceDate);
+                if (!isNaN(parsed.getTime())) {
+                    date = parsed;
                 }
+            }
+
+            if (date) {
+                // Key format: YYYY-MM
+                const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+                if (!dataByMonth[key]) {
+                    const monthName = date.toLocaleString('default', { month: 'short', year: '2-digit' });
+                    dataByMonth[key] = { name: monthName, spend: 0, dateKey: key };
+                }
+                dataByMonth[key].spend += inv.totalAmount || 0;
             }
         });
 
