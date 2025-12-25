@@ -98,19 +98,45 @@ export const useInvoices = () => {
 
   }, []);
 
-  const updateInvoice = useCallback((updatedInvoice: Invoice) => {
+  const updateInvoice = useCallback(async (updatedInvoice: Invoice) => {
+    // Optimistic update locally
     const currentInvoices = getInvoicesFromStorage();
-    const newInvoices = currentInvoices.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv);
-    saveInvoicesToStorage(newInvoices);
-    setInvoices(newInvoices);
+    const newInvoicesLocal = currentInvoices.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv);
+    saveInvoicesToStorage(newInvoicesLocal);
+    setInvoices(newInvoicesLocal);
+
+    try {
+      const syncedInvoices = await import('../services/googleSheetService').then(m => m.updateInGoogleSheet(updatedInvoice));
+      if (syncedInvoices && syncedInvoices.length > 0) {
+        const finalInvoices = syncedInvoices.map(inv => ({ ...inv, status: 'saved' as const }));
+        saveInvoicesToStorage(finalInvoices);
+        setInvoices(finalInvoices);
+      }
+    } catch (error) {
+      console.error("Failed to sync update to Google Sheet:", error);
+      // Revert or alert user? For now just log, as we did optimistic update.
+      // Ideally we should show an error state.
+    }
   }, []);
 
 
-  const deleteInvoice = useCallback((invoiceId: string) => {
+  const deleteInvoice = useCallback(async (invoiceId: string) => {
+    // Optimistic delete
     const currentInvoices = getInvoicesFromStorage();
-    const newInvoices = currentInvoices.filter((invoice) => invoice.id !== invoiceId);
-    saveInvoicesToStorage(newInvoices);
-    setInvoices(newInvoices);
+    const newInvoicesLocal = currentInvoices.filter((invoice) => invoice.id !== invoiceId);
+    saveInvoicesToStorage(newInvoicesLocal);
+    setInvoices(newInvoicesLocal);
+
+    try {
+      const syncedInvoices = await import('../services/googleSheetService').then(m => m.deleteFromGoogleSheet(invoiceId));
+      if (syncedInvoices && syncedInvoices.length > 0) {
+        const finalInvoices = syncedInvoices.map(inv => ({ ...inv, status: 'saved' as const }));
+        saveInvoicesToStorage(finalInvoices);
+        setInvoices(finalInvoices);
+      }
+    } catch (error) {
+      console.error("Failed to sync delete to Google Sheet:", error);
+    }
   }, []);
 
   return { invoices, addInvoice, updateInvoice, deleteInvoice, loading, refreshInvoices };

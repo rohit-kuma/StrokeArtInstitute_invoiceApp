@@ -11,12 +11,11 @@ interface GoogleSheetPayload {
 }
 
 // Update return type to Promise<Invoice[]>
-export const saveToGoogleSheet = async (invoice: Invoice): Promise<Invoice[]> => {
-  // TODO: Replace with actual Web App URL provided by the user
-  // TODO: Replace with actual Web App URL provided by the user
+// Update return type to Promise<Invoice[]>
+export const saveToGoogleSheet = async (invoice: Invoice, action: 'create' | 'update' | 'delete' = 'create'): Promise<Invoice[]> => {
   const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SHEET_URL || '';
 
-  console.log("DEBUG: Attempting to save to Google Sheet...");
+  console.log(`DEBUG: Attempting to ${action} in Google Sheet...`);
   console.log("DEBUG: VITE_GOOGLE_SHEET_URL Configured:", !!GOOGLE_SCRIPT_URL);
 
   if (!GOOGLE_SCRIPT_URL) {
@@ -25,7 +24,7 @@ export const saveToGoogleSheet = async (invoice: Invoice): Promise<Invoice[]> =>
   }
 
   // Update logic: Use keys that match the Google Sheet Headers exactly
-  const payload: GoogleSheetPayload = {
+  const payload: GoogleSheetPayload & { action: string; id?: string } = {
     "Date": invoice.invoiceDate || '',
     "Time": (invoice.invoiceTime && invoice.invoiceTime !== 'null') ? invoice.invoiceTime : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),
     "Vendor Name": invoice.vendorName || '',
@@ -33,13 +32,14 @@ export const saveToGoogleSheet = async (invoice: Invoice): Promise<Invoice[]> =>
     "Total Amount": invoice.totalAmount || 0,
     "Line Items": JSON.stringify(invoice.lineItems),
     "File Name": invoice.fileName || 'Manual Entry',
+    "action": action,
+    "id": invoice.id || invoice.invoiceNumber || ''
   };
 
   try {
-    console.log("Saving to Google Sheet...", payload);
+    console.log(`Sending ${action} request to Google Sheet...`, payload);
 
     // IMPORTANT: removed 'no-cors' mode so we can read the response
-    // Apps Script MUST be deployed as "Execute as: Me" and "Who has access: Anyone" for this to work with CORS.
     const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
       headers: {
@@ -54,15 +54,23 @@ export const saveToGoogleSheet = async (invoice: Invoice): Promise<Invoice[]> =>
     if (result.result === 'success' && result.invoices) {
       return result.invoices;
     } else {
-      // If no invoices returned but success, maybe empty list? 
-      // Or if error logic handled by catch/response check
       return [];
     }
 
   } catch (error) {
-    console.error('Error saving to Google Sheet:', error);
+    console.error(`Error performing ${action} on Google Sheet:`, error);
     throw error;
   }
+};
+
+export const updateInGoogleSheet = async (invoice: Invoice): Promise<Invoice[]> => {
+  return saveToGoogleSheet(invoice, 'update');
+};
+
+export const deleteFromGoogleSheet = async (invoiceId: string): Promise<Invoice[]> => {
+  // Partial invoice object for delete, we mainly need the ID
+  const dummyInvoice = { id: invoiceId, invoiceNumber: invoiceId } as Invoice;
+  return saveToGoogleSheet(dummyInvoice, 'delete');
 };
 
 // New function: Fetch all invoices (GET request)

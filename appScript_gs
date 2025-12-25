@@ -33,10 +33,7 @@ function doPost (e) {
     const doc = SpreadsheetApp.openById(scriptProp.getProperty('key'))
     const sheet = doc.getSheetByName(sheetName)
 
-    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
-    const nextRow = sheet.getLastRow() + 1
-
-    // Parse the JSON body from the request
+    // Parse the JSON body
     var data = {};
     try {
       if (e.postData && e.postData.contents) {
@@ -45,26 +42,70 @@ function doPost (e) {
     } catch (err) {
       // Fallback
     }
+
+    const action = data.action || 'create';
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+    if (action === 'create') {
+        const nextRow = sheet.getLastRow() + 1;
+        const newRow = headers.map(function(header) {
+          if (header === 'Date') {
+            return data['Date'] ? new Date(data['Date']) : new Date();
+          }
+          if (header === 'Time') {
+            const timeVal = data['Time'];
+            // Default to current time if missing or 'null'
+            if (!timeVal || timeVal === 'null' || timeVal === '') {
+              return new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+            }
+            return timeVal;
+          }
+          return data[header];
+        });
+        sheet.getRange(nextRow, 1, 1, newRow.length).setValues([newRow]);
+    } 
     
-    const newRow = headers.map(function(header) {
-      if (header === 'Date') {
-        return data['Date'] ? new Date(data['Date']) : new Date();
-      }
-      if (header === 'Time') {
-        const timeVal = data['Time'];
-        // Default to current time if missing, empty, or literally "null"
-        if (!timeVal || timeVal === 'null' || timeVal === '') {
-          return new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+    else if (action === 'update' || action === 'delete') {
+        // Find row by Invoice Number (Column D, index 3)
+        // Adjust column index if Invoice Number is not at index 3 in your sheet
+        // Based on previous code: row[3] is Invoice Number
+        const invoiceId = data['id'] || data['Invoice Number']; // Expect ID in payload
+        if (!invoiceId) {
+            throw new Error("Missing Invoice ID/Number for action: " + action);
         }
-        return timeVal;
-      }
-      return data[header]
-    })
 
-    sheet.getRange(nextRow, 1, 1, newRow.length).setValues([newRow])
+        const lastRow = sheet.getLastRow();
+        const invoiceIds = sheet.getRange(2, 4, lastRow - 1, 1).getValues().flat().map(String); // Column D is 4th column
+        const rowIndex = invoiceIds.indexOf(String(invoiceId));
 
-    // Fetch all data to return to client
-    const invoices = getInvoices(doc, sheet); // Pass doc/sheet if already open to save time, or function can open.
+        if (rowIndex !== -1) {
+            const actualRow = rowIndex + 2; // +2 because data starts at row 2
+
+            if (action === 'delete') {
+                sheet.deleteRow(actualRow);
+            } else if (action === 'update') {
+               const updatedRow = headers.map(function(header) {
+                  // For update, we use the new data if present, else keep existing?
+                  // Usually update sends full object.
+                   if (header === 'Date') {
+                     return data['Date'] ? new Date(data['Date']) : new Date();
+                   }
+                   if (header === 'Time') {
+                     const timeVal = data['Time'];
+                     if (!timeVal || timeVal === 'null' || timeVal === '') {
+                       return new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+                     }
+                     return timeVal;
+                   }
+                   return data[header] !== undefined ? data[header] : ""; 
+               });
+               sheet.getRange(actualRow, 1, 1, updatedRow.length).setValues([updatedRow]);
+            }
+        }
+    }
+
+    // Fetch all data to return to client (Sync State)
+    const invoices = getInvoices(doc, sheet);
 
     return ContentService
       .createTextOutput(JSON.stringify({ 'result': 'success', 'invoices': invoices }))
@@ -73,7 +114,7 @@ function doPost (e) {
 
   catch (e) {
     return ContentService
-      .createTextOutput(JSON.stringify({ 'result': 'error', 'error': e }))
+      .createTextOutput(JSON.stringify({ 'result': 'error', 'error': e.toString() }))
       .setMimeType(ContentService.MimeType.JSON)
   }
 
