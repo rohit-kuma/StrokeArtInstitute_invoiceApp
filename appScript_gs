@@ -50,6 +50,14 @@ function doPost (e) {
       if (header === 'Date') {
         return data['Date'] ? new Date(data['Date']) : new Date();
       }
+      if (header === 'Time') {
+        const timeVal = data['Time'];
+        // Default to current time if missing, empty, or literally "null"
+        if (!timeVal || timeVal === 'null' || timeVal === '') {
+          return new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+        }
+        return timeVal;
+      }
       return data[header]
     })
 

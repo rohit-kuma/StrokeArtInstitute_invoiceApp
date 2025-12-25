@@ -27,7 +27,7 @@ export const saveToGoogleSheet = async (invoice: Invoice): Promise<Invoice[]> =>
   // Update logic: Use keys that match the Google Sheet Headers exactly
   const payload: GoogleSheetPayload = {
     "Date": invoice.invoiceDate || '',
-    "Time": invoice.invoiceTime || new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }), // Default to HH:mm
+    "Time": (invoice.invoiceTime && invoice.invoiceTime !== 'null') ? invoice.invoiceTime : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),
     "Vendor Name": invoice.vendorName || '',
     "Invoice Number": invoice.invoiceNumber || '',
     "Total Amount": invoice.totalAmount || 0,
