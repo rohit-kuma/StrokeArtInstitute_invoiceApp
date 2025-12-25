@@ -34,25 +34,31 @@ const AnalyticsDashboard: React.FC = () => {
     }, [invoices]);
 
     const monthlyData = useMemo(() => {
-        const dataByMonth: { [key: string]: { name: string, spend: number } } = {};
+        const dataByMonth: { [key: string]: { name: string, spend: number, dateKey: string } } = {};
 
         invoices.forEach(inv => {
-            if (inv.invoiceDate) {
+            if (inv.invoiceDate && inv.invoiceDate.match(/^\d{4}-\d{2}-\d{2}$/)) {
                 try {
-                    const month = inv.invoiceDate.substring(0, 7); // YYYY-MM
-                    if (!dataByMonth[month]) {
-                        const date = new Date(inv.invoiceDate + 'T00:00:00');
+                    const monthKey = inv.invoiceDate.substring(0, 7); // YYYY-MM
+                    if (!dataByMonth[monthKey]) {
+                        // Manually parse year and month to avoid timezone issues
+                        const year = parseInt(inv.invoiceDate.substring(0, 4));
+                        const monthIndex = parseInt(inv.invoiceDate.substring(5, 7)) - 1;
+                        const date = new Date(year, monthIndex, 1);
+
+                        // Format: "Jan 24"
                         const monthName = date.toLocaleString('default', { month: 'short', year: '2-digit' });
-                        dataByMonth[month] = { name: monthName, spend: 0 };
+                        dataByMonth[monthKey] = { name: monthName, spend: 0, dateKey: monthKey };
                     }
-                    dataByMonth[month].spend += inv.totalAmount || 0;
+                    dataByMonth[monthKey].spend += inv.totalAmount || 0;
                 } catch (e) {
-                    console.error("Invalid date format for invoice", inv.id, inv.invoiceDate);
+                    console.error("Invalid date processing for invoice", inv.id);
                 }
             }
         });
 
-        return Object.values(dataByMonth).sort((a, b) => a.name.localeCompare(b.name));
+        // Sort by dateKey (YYYY-MM) instead of name
+        return Object.values(dataByMonth).sort((a, b) => a.dateKey.localeCompare(b.dateKey));
     }, [invoices]);
 
     const chartColors = theme === 'dark' ?
