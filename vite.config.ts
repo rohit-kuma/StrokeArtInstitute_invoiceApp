@@ -17,6 +17,10 @@ export default defineConfig({
         short_name: 'InvoiceAI',
         description: 'AI-powered Invoice to Google Sheets Scanner',
         theme_color: '#ffffff',
+        background_color: '#ffffff',
+        display: 'standalone',
+        scope: '/StrokeArtInstitute_invoiceApp/',
+        start_url: '/StrokeArtInstitute_invoiceApp/',
         icons: [
           {
             src: 'pwa-192x192.png',
