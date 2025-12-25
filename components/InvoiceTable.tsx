@@ -77,7 +77,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoice, onComplete }) => {
       onComplete();
     } catch (error) {
       console.error("Failed to save invoice:", error);
-      alert("Failed to save invoice to Google Sheet, but local save might have succeeded. Check console.");
+      alert(`Failed to save to Google Sheet: ${(error as Error).message}. Local save likely succeeded.`);
     } finally {
       setIsSaving(false);
     }

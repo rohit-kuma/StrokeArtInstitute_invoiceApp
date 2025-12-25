@@ -15,9 +15,12 @@ export const saveToGoogleSheet = async (invoice: Invoice): Promise<void> => {
   // TODO: Replace with actual Web App URL provided by the user
   const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SHEET_URL || '';
 
+  console.log("DEBUG: Attempting to save to Google Sheet...");
+  console.log("DEBUG: VITE_GOOGLE_SHEET_URL Configured:", !!GOOGLE_SCRIPT_URL);
+
   if (!GOOGLE_SCRIPT_URL) {
-    console.error("DEBUG: VITE_GOOGLE_SHEET_URL is missing or empty.");
-    throw new Error('Google Sheet Connector URL is not configured.');
+    console.error("CRITICAL ERROR: Google Sheet URL is missing in this environment.");
+    throw new Error('Google Sheet Connector URL is not configured. Please check your deployment secrets.');
   }
 
   // Update logic: Use keys that match the Google Sheet Headers exactly
