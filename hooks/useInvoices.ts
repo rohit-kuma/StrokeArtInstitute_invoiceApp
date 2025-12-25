@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { type Invoice } from '../types';
-import { saveToGoogleSheet } from '../services/googleSheetService';
+import { saveToGoogleSheet, fetchInvoices } from '../services/googleSheetService';
 
 const INVOICES_STORAGE_KEY = 'invoiceai_invoices';
 
@@ -31,9 +31,7 @@ export const useInvoices = () => {
     setLoading(true);
     try {
       // Fetch from Google Sheet (Source of Truth)
-      // Dynamic import to avoid circular dependency if any (though likely safe here, let's keep it simple)
-      const service = await import('../services/googleSheetService');
-      const syncedInvoices = await service.fetchInvoices();
+      const syncedInvoices = await fetchInvoices();
 
       if (syncedInvoices && syncedInvoices.length > 0) {
         const finalInvoices = syncedInvoices.map(inv => ({ ...inv, status: 'saved' as const }));
@@ -58,8 +56,6 @@ export const useInvoices = () => {
     refreshInvoices();
   }, [refreshInvoices]);
 
-
-  return { invoices, addInvoice, updateInvoice, deleteInvoice, loading, refreshInvoices };
 
   const addInvoice = useCallback(async (invoice: Invoice) => {
     const currentInvoices = getInvoicesFromStorage();
@@ -117,5 +113,5 @@ export const useInvoices = () => {
     setInvoices(newInvoices);
   }, []);
 
-  return { invoices, addInvoice, updateInvoice, deleteInvoice, loading };
+  return { invoices, addInvoice, updateInvoice, deleteInvoice, loading, refreshInvoices };
 };
