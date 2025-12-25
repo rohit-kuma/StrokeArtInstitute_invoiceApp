@@ -16,23 +16,37 @@ export default defineConfig({
         name: 'Invoice to Sheet AI',
         short_name: 'InvoiceAI',
         description: 'AI-powered Invoice to Google Sheets Scanner',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
-        display: 'standalone',
-        scope: '/StrokeArtInstitute_invoiceApp/',
+        id: '/StrokeArtInstitute_invoiceApp/',
         start_url: '/StrokeArtInstitute_invoiceApp/',
+        scope: '/StrokeArtInstitute_invoiceApp/',
+        display: 'standalone',
+        background_color: '#ffffff',
+        theme_color: '#ffffff',
+        orientation: 'portrait',
         icons: [
           {
             src: 'pwa-192x192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: 'pwa-192x192.png',
+            sizes: '192x192',
+            type: 'image/png',
+            purpose: 'maskable'
           },
           {
             src: 'pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       }
