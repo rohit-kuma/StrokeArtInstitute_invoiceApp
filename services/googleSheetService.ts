@@ -16,6 +16,7 @@ export const saveToGoogleSheet = async (invoice: Invoice): Promise<void> => {
   const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SHEET_URL || '';
 
   if (!GOOGLE_SCRIPT_URL) {
+    console.error("DEBUG: VITE_GOOGLE_SHEET_URL is missing or empty.");
     throw new Error('Google Sheet Connector URL is not configured.');
   }
 
