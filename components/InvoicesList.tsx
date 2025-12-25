@@ -86,7 +86,17 @@ const InvoicesList: React.FC = () => {
 
 
     if (loading) {
-        return <div>Loading invoices...</div>;
+        return (
+            <div className="flex flex-col items-center justify-center py-24 min-h-[50vh]">
+                <div className="relative">
+                    <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 border-t-accent-blue rounded-full animate-spin"></div>
+                    <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-accent-blue rounded-full animate-spin opacity-50 blur-sm"></div>
+                </div>
+                <h2 className="mt-6 text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-800 to-gray-600 dark:from-white dark:to-gray-400 animate-pulse">
+                    Loading Invoices...
+                </h2>
+            </div>
+        );
     }
 
     if (invoices.length === 0) {
