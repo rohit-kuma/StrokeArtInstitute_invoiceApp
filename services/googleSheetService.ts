@@ -10,7 +10,8 @@ interface GoogleSheetPayload {
   "File Name": string;
 }
 
-export const saveToGoogleSheet = async (invoice: Invoice): Promise<void> => {
+// Update return type to Promise<Invoice[]>
+export const saveToGoogleSheet = async (invoice: Invoice): Promise<Invoice[]> => {
   // TODO: Replace with actual Web App URL provided by the user
   // TODO: Replace with actual Web App URL provided by the user
   const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SHEET_URL || '';
@@ -37,24 +38,29 @@ export const saveToGoogleSheet = async (invoice: Invoice): Promise<void> => {
   try {
     console.log("Saving to Google Sheet...", payload);
 
-    // Use no-cors to treat as a "simple request" and avoid OPTIONS preflight
-    // which can sometimes cause double-invocations in Apps Scripts or CORS errors.
-    // Note: With no-cors, we cannot read the response status (it will be opaque),
-    // but the request will be sent.
-    await fetch(GOOGLE_SCRIPT_URL, {
+    // IMPORTANT: removed 'no-cors' mode so we can read the response
+    // Apps Script MUST be deployed as "Execute as: Me" and "Who has access: Anyone" for this to work with CORS.
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      mode: 'no-cors',
       headers: {
-        'Content-Type': 'text/plain;charset=utf-8', // Ensure simple request
+        'Content-Type': 'text/plain;charset=utf-8',
       },
       body: JSON.stringify(payload),
     });
 
-    console.log("Request sent to Google Sheet.");
+    const result = await response.json();
+    console.log("Google Sheet Response:", result);
+
+    if (result.result === 'success' && result.invoices) {
+      return result.invoices;
+    } else {
+      // If no invoices returned but success, maybe empty list? 
+      // Or if error logic handled by catch/response check
+      return [];
+    }
 
   } catch (error) {
     console.error('Error saving to Google Sheet:', error);
-    // With no-cors, network errors might still catch here, but 4xx/5xx wont.
     throw error;
   }
 };

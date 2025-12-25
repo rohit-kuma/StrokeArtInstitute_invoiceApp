@@ -43,8 +43,28 @@ function doPost (e) {
 
     sheet.getRange(nextRow, 1, 1, newRow.length).setValues([newRow])
 
+    // Fetch all data to return to client
+    const allDataRange = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn());
+    const allValues = allDataRange.getValues();
+    
+    // Map rows to objects matching the requested columns: Vendor, Invoice #, Date, Time, Total
+    // Assuming columns order based on headers: Date(0), Time(1), Vendor Name(2), Invoice Number(3), Total Amount(4), Line Items(5), File Name(6)
+    const invoices = allValues.map(row => ({
+      invoiceDate: row[0], // Date
+      invoiceTime: row[1], // Time
+      vendorName: row[2], // Vendor Name
+      invoiceNumber: row[3], // Invoice Number
+      totalAmount: row[4], // Total Amount
+      // We can interpret the rest or just stick to what visual list needs. 
+      // User asked for specific columns, but to replace local state we might need more to fully hydrate the app?
+      // For now, let's map what's available to the Invoice type structure so frontend can use it directly.
+      lineItems: row[5] ? JSON.parse(row[5]) : [],
+      fileName: row[6],
+      id: row[3] // Use Invoice Number as ID or generate one? using inv number for now
+    })).reverse(); // specific request: latest on top (conceptually, usually bottom row is latest)
+
     return ContentService
-      .createTextOutput(JSON.stringify({ 'result': 'success', 'row': nextRow }))
+      .createTextOutput(JSON.stringify({ 'result': 'success', 'invoices': invoices }))
       .setMimeType(ContentService.MimeType.JSON)
   }
 
