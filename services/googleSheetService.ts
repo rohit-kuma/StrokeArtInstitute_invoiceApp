@@ -64,3 +64,35 @@ export const saveToGoogleSheet = async (invoice: Invoice): Promise<Invoice[]> =>
     throw error;
   }
 };
+
+// New function: Fetch all invoices (GET request)
+export const fetchInvoices = async (): Promise<Invoice[]> => {
+  const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SHEET_URL || '';
+
+  if (!GOOGLE_SCRIPT_URL) {
+    console.error("CRITICAL ERROR: Google Sheet URL is missing.");
+    return [];
+  }
+
+  try {
+    console.log("Fetching invoices from Google Sheet...");
+
+    // IMPORTANT: removed 'no-cors' mode so we can read the response
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'GET',
+    });
+
+    const result = await response.json();
+    console.log("Google Sheet Fetch Response:", result);
+
+    if (result.result === 'success' && result.invoices) {
+      return result.invoices;
+    } else {
+      return [];
+    }
+
+  } catch (error) {
+    console.error('Error fetching invoices:', error);
+    throw error;
+  }
+};
