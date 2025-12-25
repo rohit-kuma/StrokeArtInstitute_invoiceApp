@@ -7,6 +7,24 @@ function initialSetup () {
   scriptProp.setProperty('key', activeSpreadsheet.getId())
 }
 
+function doGet(e) {
+  const lock = LockService.getScriptLock()
+  lock.tryLock(10000)
+
+  try {
+    const invoices = getInvoices();
+    return ContentService
+      .createTextOutput(JSON.stringify({ 'result': 'success', 'invoices': invoices }))
+      .setMimeType(ContentService.MimeType.JSON)
+  } catch (e) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ 'result': 'error', 'error': e }))
+      .setMimeType(ContentService.MimeType.JSON)
+  } finally {
+    lock.releaseLock()
+  }
+}
+
 function doPost (e) {
   const lock = LockService.getScriptLock()
   lock.tryLock(10000)
@@ -19,22 +37,16 @@ function doPost (e) {
     const nextRow = sheet.getLastRow() + 1
 
     // Parse the JSON body from the request
-    // This handles the 'text/plain' payload sent by the frontend
     var data = {};
     try {
       if (e.postData && e.postData.contents) {
         data = JSON.parse(e.postData.contents);
       }
     } catch (err) {
-      // Fallback or ignore
+      // Fallback
     }
     
-    // Also include e.parameter just in case (though body takes precedence here)
-    // Actually, let's just use 'data' for the keys
-    
     const newRow = headers.map(function(header) {
-      // header matches properties in 'data' dictionary which we send as JSON keys
-      // If header is 'Date', prefer the value sent in JSON, otherwise fallback to server time
       if (header === 'Date') {
         return data['Date'] ? new Date(data['Date']) : new Date();
       }
@@ -44,24 +56,7 @@ function doPost (e) {
     sheet.getRange(nextRow, 1, 1, newRow.length).setValues([newRow])
 
     // Fetch all data to return to client
-    const allDataRange = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn());
-    const allValues = allDataRange.getValues();
-    
-    // Map rows to objects matching the requested columns: Vendor, Invoice #, Date, Time, Total
-    // Assuming columns order based on headers: Date(0), Time(1), Vendor Name(2), Invoice Number(3), Total Amount(4), Line Items(5), File Name(6)
-    const invoices = allValues.map(row => ({
-      invoiceDate: row[0], // Date
-      invoiceTime: row[1], // Time
-      vendorName: row[2], // Vendor Name
-      invoiceNumber: row[3], // Invoice Number
-      totalAmount: row[4], // Total Amount
-      // We can interpret the rest or just stick to what visual list needs. 
-      // User asked for specific columns, but to replace local state we might need more to fully hydrate the app?
-      // For now, let's map what's available to the Invoice type structure so frontend can use it directly.
-      lineItems: row[5] ? JSON.parse(row[5]) : [],
-      fileName: row[6],
-      id: row[3] // Use Invoice Number as ID or generate one? using inv number for now
-    })).reverse(); // specific request: latest on top (conceptually, usually bottom row is latest)
+    const invoices = getInvoices(doc, sheet); // Pass doc/sheet if already open to save time, or function can open.
 
     return ContentService
       .createTextOutput(JSON.stringify({ 'result': 'success', 'invoices': invoices }))
@@ -77,4 +72,30 @@ function doPost (e) {
   finally {
     lock.releaseLock()
   }
+}
+
+// Helper function to get invoices (shared by doGet and doPost)
+function getInvoices(doc, sheet) {
+  if (!doc) doc = SpreadsheetApp.openById(scriptProp.getProperty('key'))
+  if (!sheet) sheet = doc.getSheetByName(sheetName)
+
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return []; // Header only or empty
+
+  const allDataRange = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn());
+  const allValues = allDataRange.getValues();
+  
+  // Map rows to objects matching the requested columns
+  const invoices = allValues.map(row => ({
+    invoiceDate: row[0], 
+    invoiceTime: row[1], 
+    vendorName: row[2], 
+    invoiceNumber: row[3], 
+    totalAmount: row[4], 
+    lineItems: row[5] ? JSON.parse(row[5]) : [],
+    fileName: row[6],
+    id: row[3] 
+  })).reverse(); 
+
+  return invoices;
 }

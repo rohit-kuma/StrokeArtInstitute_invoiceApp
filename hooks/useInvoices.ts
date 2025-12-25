@@ -27,10 +27,39 @@ export const useInvoices = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setInvoices(getInvoicesFromStorage());
-    setLoading(false);
+  const refreshInvoices = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Fetch from Google Sheet (Source of Truth)
+      // Dynamic import to avoid circular dependency if any (though likely safe here, let's keep it simple)
+      const service = await import('../services/googleSheetService');
+      const syncedInvoices = await service.fetchInvoices();
+
+      if (syncedInvoices && syncedInvoices.length > 0) {
+        const finalInvoices = syncedInvoices.map(inv => ({ ...inv, status: 'saved' as const }));
+        saveInvoicesToStorage(finalInvoices);
+        setInvoices(finalInvoices);
+      } else {
+        // If empty/fail, do nothing or handle accordingly
+      }
+    } catch (error) {
+      console.error("Failed to refresh invoices:", error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Initial Load (Refresh from server)
+  useEffect(() => {
+    // Load from local storage first for instant render
+    setInvoices(getInvoicesFromStorage());
+
+    // Then sync with server
+    refreshInvoices();
+  }, [refreshInvoices]);
+
+
+  return { invoices, addInvoice, updateInvoice, deleteInvoice, loading, refreshInvoices };
 
   const addInvoice = useCallback(async (invoice: Invoice) => {
     const currentInvoices = getInvoicesFromStorage();

@@ -18,6 +18,16 @@ const formatDateForDisplay = (dateString: string | null): string => {
     }
 };
 
+const formatTimeForDisplay = (timeString: string | null): string => {
+    if (!timeString) return 'N/A';
+    // Handle ISO string from Google Sheets (often 1899 epoch for time-only values)
+    // Example: 1899-12-29T21:42:50.000Z -> 21:42:50
+    if (timeString.includes('T')) {
+        return timeString.split('T')[1].substring(0, 8);
+    }
+    return timeString;
+};
+
 const InvoicesList: React.FC = () => {
     const { invoices, updateInvoice, deleteInvoice, loading } = useInvoices();
     const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null);
@@ -57,7 +67,7 @@ const InvoicesList: React.FC = () => {
                 formatCSVField(inv.vendorName),
                 formatCSVField(inv.invoiceNumber),
                 formatCSVField(formatDateForDisplay(inv.invoiceDate)),
-                formatCSVField(inv.invoiceTime),
+                formatCSVField(formatTimeForDisplay(inv.invoiceTime)),
                 (inv.totalAmount || 0).toFixed(2)
             ].join(','))
         ];
@@ -123,7 +133,7 @@ const InvoicesList: React.FC = () => {
                                     <td className="p-4 font-medium text-gray-900 dark:text-white">{invoice.vendorName || 'N/A'}</td>
                                     <td className="p-4 text-gray-500 dark:text-gray-400">{invoice.invoiceNumber || 'N/A'}</td>
                                     <td className="p-4 text-gray-700 dark:text-gray-300">{formatDateForDisplay(invoice.invoiceDate)}</td>
-                                    <td className="p-4 text-gray-700 dark:text-gray-300">{invoice.invoiceTime || 'N/A'}</td>
+                                    <td className="p-4 text-gray-700 dark:text-gray-300">{formatTimeForDisplay(invoice.invoiceTime)}</td>
                                     <td className="p-4 text-right font-semibold text-gray-900 dark:text-white">₹{(invoice.totalAmount || 0).toFixed(2)}</td>
                                     <td className="p-4 text-center">
                                         <div className="flex justify-center gap-2">
