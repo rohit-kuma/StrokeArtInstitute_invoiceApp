@@ -12,6 +12,7 @@ interface GoogleSheetPayload {
 
 export const saveToGoogleSheet = async (invoice: Invoice): Promise<void> => {
   // TODO: Replace with actual Web App URL provided by the user
+  // TODO: Replace with actual Web App URL provided by the user
   const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SHEET_URL || '';
 
   if (!GOOGLE_SCRIPT_URL) {
