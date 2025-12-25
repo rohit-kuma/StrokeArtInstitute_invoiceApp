@@ -59,7 +59,25 @@ const invoiceSchema = {
 };
 
 export const parseInvoice = async (input: File[] | string): Promise<Partial<Invoice>> => {
-    
+
+    // Fallback for development if no API key is present
+    if (!apiKey) {
+        console.warn("No VITE_API_KEY found. Using mock data for testing.");
+        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
+        return {
+            vendorName: "Mock Vendor Inc.",
+            invoiceDate: new Date().toISOString().split('T')[0],
+            invoiceTime: "12:00",
+            invoiceNumber: "INV-MOCK-001",
+            totalAmount: 150.00,
+            lineItems: [
+                { description: "Mock Service A", quantity: 1, unitPrice: 50, subtotal: 50 },
+                { description: "Mock Product B", quantity: 2, unitPrice: 50, subtotal: 100 }
+            ],
+            fileName: typeof input === 'string' ? "Text Input" : input[0].name
+        };
+    }
+
     const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
 
     const prompt = `
@@ -76,7 +94,7 @@ export const parseInvoice = async (input: File[] | string): Promise<Partial<Invo
 
         Capitalize the first letter of each word in the vendor's name (e.g., "john doe" becomes "John Doe").
     `;
-    
+
     const parts = [];
     if (typeof input === 'string') {
         parts.push({ text: input });
@@ -95,7 +113,7 @@ export const parseInvoice = async (input: File[] | string): Promise<Partial<Invo
                 responseSchema: invoiceSchema,
             },
         });
-        
+
         const jsonText = response.text.trim();
         if (!jsonText) {
             throw new Error('Received an empty response from the AI.');
@@ -103,14 +121,14 @@ export const parseInvoice = async (input: File[] | string): Promise<Partial<Invo
 
         const parsedData = JSON.parse(jsonText);
         return parsedData as Partial<Invoice>;
-        
+
     } catch (e: any) {
         console.error("Error calling Gemini API:", e);
         if (e.message.includes('SAFETY')) {
             throw new Error('The request was blocked due to safety settings.');
         }
         if (e.message.includes('400')) {
-             throw new Error('There was an issue with the request sent to the AI (Bad Request).');
+            throw new Error('There was an issue with the request sent to the AI (Bad Request).');
         }
         throw new Error(`Failed to parse the invoice: ${e.message}`);
     }

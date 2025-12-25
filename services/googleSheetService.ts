@@ -1,32 +1,54 @@
-import { type Invoice } from '../types';
+import { Invoice } from '../types';
 
-/**
- * Simulates saving a single invoice record to a Google Sheet.
- * In a real-world application, this would involve using the Google Sheets API
- * with proper authentication (OAuth2) on a secure backend server.
- * For this client-side demo, we simulate the network request and log the action.
- */
+interface GoogleSheetPayload {
+  date: string;
+  time: string;
+  vendorName: string;
+  invoiceNumber: string;
+  totalAmount: number;
+  lineItems: string; // JSON string
+  fileName: string;
+}
+
 export const saveToGoogleSheet = async (invoice: Invoice): Promise<void> => {
-  console.log('Attempting to sync invoice to Google Sheets...');
-  
-  // Simulate network latency of an API call
-  await new Promise(resolve => setTimeout(resolve, 1200));
+  // TODO: Replace with actual Web App URL provided by the user
+  const GOOGLE_SCRIPT_URL = import.meta.env.VITE_GOOGLE_SHEET_URL || '';
 
-  // In a real implementation, you would format the data as a row
-  // and append it to the specified sheet.
-  const sheetRow = [
-    invoice.vendorName || 'N/A',
-    invoice.invoiceNumber || 'N/A',
-    invoice.invoiceDate || 'N/A',
-    invoice.invoiceTime || 'N/A',
-    invoice.totalAmount || 0,
-    JSON.stringify(invoice.lineItems) // Storing complex data as JSON string
-  ];
-  
-  console.log('--- SYNC SUCCESS ---');
-  console.log('Sheet: stroke_art_invoice.gsheet');
-  console.log('Data sent:', sheetRow);
-  
-  // This would be a return from the actual API call
-  return Promise.resolve();
+  if (!GOOGLE_SCRIPT_URL) {
+    throw new Error('Google Sheet Connector URL is not configured.');
+  }
+
+  const payload: GoogleSheetPayload = {
+    date: invoice.invoiceDate || '',
+    time: invoice.invoiceTime || '',
+    vendorName: invoice.vendorName || '',
+    invoiceNumber: invoice.invoiceNumber || '',
+    totalAmount: invoice.totalAmount || 0,
+    lineItems: JSON.stringify(invoice.lineItems),
+    fileName: invoice.fileName || 'Manual Entry',
+  };
+
+  try {
+    // Google Apps Script requires no-cors for simple posts usually, 
+    // but that prevents reading the response. 
+    // Usually standard fetch works if the script is set to "Anyone" and returns JSON.
+    // However, CORS issues are common. simple 'no-cors' is safer if we just want to fire and forget
+    // or if we accept opaque response.
+    // Ideally the script should return JSONP or support CORS.
+    // For now, we will try a standard POST.
+
+    // Note: 'Content-Type': 'application/json' generally triggers preflight which GAS doesn't handle well.
+    // Using 'application/x-www-form-urlencoded' or 'text/plain' is often more reliable for GAS.
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server responded with ${response.status}`);
+    }
+  } catch (error) {
+    console.error('Error saving to Google Sheet:', error);
+    throw error;
+  }
 };
