@@ -24,7 +24,7 @@ const AnalyticsDashboard: React.FC = () => {
 
         // FIX: Rewrote sort function to be more explicit and avoid potential type inference issues with destructuring.
         const topVendor = Object.entries(vendorCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
-        
+
         return {
             totalSpend,
             invoiceCount,
@@ -35,39 +35,49 @@ const AnalyticsDashboard: React.FC = () => {
 
     const monthlyData = useMemo(() => {
         const dataByMonth: { [key: string]: { name: string, spend: number } } = {};
-        
+
         invoices.forEach(inv => {
-            if(inv.invoiceDate) {
+            if (inv.invoiceDate) {
                 try {
                     const month = inv.invoiceDate.substring(0, 7); // YYYY-MM
-                     if (!dataByMonth[month]) {
+                    if (!dataByMonth[month]) {
                         const date = new Date(inv.invoiceDate + 'T00:00:00');
                         const monthName = date.toLocaleString('default', { month: 'short', year: '2-digit' });
                         dataByMonth[month] = { name: monthName, spend: 0 };
                     }
                     dataByMonth[month].spend += inv.totalAmount || 0;
-                } catch(e) {
+                } catch (e) {
                     console.error("Invalid date format for invoice", inv.id, inv.invoiceDate);
                 }
             }
         });
 
-        return Object.values(dataByMonth).sort((a,b) => a.name.localeCompare(b.name));
+        return Object.values(dataByMonth).sort((a, b) => a.name.localeCompare(b.name));
     }, [invoices]);
-    
-    const chartColors = theme === 'dark' ? 
+
+    const chartColors = theme === 'dark' ?
         { grid: '#30363D', text: '#d1d5db', bar: '#388BFD' } :
         { grid: '#e5e7eb', text: '#374151', bar: '#3b82f6' };
 
     if (loading) {
-        return <div>Loading analytics...</div>;
+        return (
+            <div className="flex flex-col items-center justify-center py-24 min-h-[50vh]">
+                <div className="relative">
+                    <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-700 border-t-accent-blue rounded-full animate-spin"></div>
+                    <div className="absolute top-0 left-0 w-16 h-16 border-4 border-transparent border-t-accent-blue rounded-full animate-spin opacity-50 blur-sm"></div>
+                </div>
+                <h2 className="mt-6 text-2xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-800 to-gray-600 dark:from-white dark:to-gray-400 animate-pulse">
+                    Loading Analytics...
+                </h2>
+            </div>
+        );
     }
 
     return (
         <div className="max-w-7xl mx-auto">
             <h2 className="text-3xl font-bold mb-2 text-gray-800 dark:text-white">Analytics Dashboard</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">Visualize your spending trends and invoice data.</p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 <StatCard title="Total Spend" value={`₹${stats.totalSpend.toFixed(2)}`} />
                 <StatCard title="Total Invoices" value={stats.invoiceCount.toString()} />
@@ -79,13 +89,13 @@ const AnalyticsDashboard: React.FC = () => {
                 <h3 className="text-xl font-bold mb-4">Monthly Spending</h3>
                 {invoices.length > 0 ? (
                     <div style={{ width: '100%', height: 400 }}>
-                         <ResponsiveContainer>
+                        <ResponsiveContainer>
                             <BarChart data={monthlyData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
                                 <XAxis dataKey="name" stroke={chartColors.text} />
                                 <YAxis stroke={chartColors.text} />
                                 <Tooltip
-                                    contentStyle={{ 
+                                    contentStyle={{
                                         backgroundColor: theme === 'dark' ? '#161B22' : '#ffffff',
                                         border: `1px solid ${chartColors.grid}`
                                     }}
