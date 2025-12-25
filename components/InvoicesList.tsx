@@ -168,7 +168,21 @@ const InvoicesList: React.FC = () => {
 
 // A simple modal for editing. Could be more complex.
 const EditModal: React.FC<{ invoice: Invoice, onSave: (invoice: Invoice) => void, onClose: () => void }> = ({ invoice, onSave, onClose }) => {
-    const [editedInvoice, setEditedInvoice] = useState<Invoice>(invoice);
+    // Correctly format date for input field (YYYY-MM-DD)
+    const [editedInvoice, setEditedInvoice] = useState<Invoice>(() => {
+        let formattedDate = invoice.invoiceDate || '';
+        try {
+            // If date is valid, ensure it is YYYY-MM-DD
+            if (formattedDate) {
+                const dateObj = new Date(formattedDate);
+                if (!isNaN(dateObj.getTime())) {
+                    formattedDate = dateObj.toISOString().split('T')[0];
+                }
+            }
+        } catch (e) { /* ignore invalid dates */ }
+
+        return { ...invoice, invoiceDate: formattedDate };
+    });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;

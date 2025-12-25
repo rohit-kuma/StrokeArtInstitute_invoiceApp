@@ -102,8 +102,10 @@ export const useInvoices = () => {
     // Optimistic update locally
     const currentInvoices = getInvoicesFromStorage();
     const newInvoicesLocal = currentInvoices.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv);
-    saveInvoicesToStorage(newInvoicesLocal);
+
+    // Update state immediately to reflect changes
     setInvoices(newInvoicesLocal);
+    saveInvoicesToStorage(newInvoicesLocal);
 
     try {
       const syncedInvoices = await import('../services/googleSheetService').then(m => m.updateInGoogleSheet(updatedInvoice));
@@ -111,11 +113,16 @@ export const useInvoices = () => {
         const finalInvoices = syncedInvoices.map(inv => ({ ...inv, status: 'saved' as const }));
         saveInvoicesToStorage(finalInvoices);
         setInvoices(finalInvoices);
+      } else {
+        // If sync returns empty but didn't error, usually means success but no data return (rare with current script)
+        // We keep optimistic state.
       }
     } catch (error) {
       console.error("Failed to sync update to Google Sheet:", error);
-      // Revert or alert user? For now just log, as we did optimistic update.
-      // Ideally we should show an error state.
+      // Revert to original state on critical failure to avoid data inconsistency UI
+      setInvoices(currentInvoices);
+      saveInvoicesToStorage(currentInvoices);
+      alert("Failed to save changes to server. Please try again.");
     }
   }, []);
 
