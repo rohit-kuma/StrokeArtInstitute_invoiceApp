@@ -1,0 +1,60 @@
+//https://script.google.com/macros/s/AKfycbxYi0fYSlIeFtzYAPm5loBuhhXc0WdK-zRarIdSMAWsEeGHmx_rqZwObdvjFagDM1jNNA/exec
+const sheetName = 'Sheet1'
+const scriptProp = PropertiesService.getScriptProperties()
+
+function initialSetup () {
+  const activeSpreadsheet = SpreadsheetApp.getActiveSpreadsheet()
+  scriptProp.setProperty('key', activeSpreadsheet.getId())
+}
+
+function doPost (e) {
+  const lock = LockService.getScriptLock()
+  lock.tryLock(10000)
+
+  try {
+    const doc = SpreadsheetApp.openById(scriptProp.getProperty('key'))
+    const sheet = doc.getSheetByName(sheetName)
+
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0]
+    const nextRow = sheet.getLastRow() + 1
+
+    // Parse the JSON body from the request
+    // This handles the 'text/plain' payload sent by the frontend
+    var data = {};
+    try {
+      if (e.postData && e.postData.contents) {
+        data = JSON.parse(e.postData.contents);
+      }
+    } catch (err) {
+      // Fallback or ignore
+    }
+    
+    // Also include e.parameter just in case (though body takes precedence here)
+    // Actually, let's just use 'data' for the keys
+    
+    const newRow = headers.map(function(header) {
+      // header matches properties in 'data' dictionary which we send as JSON keys
+      // If header is 'Date', prefer the value sent in JSON, otherwise fallback to server time
+      if (header === 'Date') {
+        return data['Date'] ? new Date(data['Date']) : new Date();
+      }
+      return data[header]
+    })
+
+    sheet.getRange(nextRow, 1, 1, newRow.length).setValues([newRow])
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ 'result': 'success', 'row': nextRow }))
+      .setMimeType(ContentService.MimeType.JSON)
+  }
+
+  catch (e) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ 'result': 'error', 'error': e }))
+      .setMimeType(ContentService.MimeType.JSON)
+  }
+
+  finally {
+    lock.releaseLock()
+  }
+}

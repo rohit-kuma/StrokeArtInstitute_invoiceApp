@@ -39,27 +39,27 @@ export const useInvoices = () => {
     // Auto-increment logic is now centralized here for reliability
     if (!invoiceToAdd.invoiceNumber || invoiceToAdd.invoiceNumber.toLowerCase() === 'null') {
       const maxId = currentInvoices.reduce((max, inv) => {
-          const invNum = parseInt(inv.invoiceNumber || '0', 10);
-          return !isNaN(invNum) && invNum > max ? invNum : max;
+        const invNum = parseInt(inv.invoiceNumber || '0', 10);
+        return !isNaN(invNum) && invNum > max ? invNum : max;
       }, 0);
       invoiceToAdd.invoiceNumber = (maxId + 1).toString();
     }
-    
+
     const newInvoices = [...currentInvoices, { ...invoiceToAdd, status: 'saved' as const }];
     saveInvoicesToStorage(newInvoices);
     setInvoices(newInvoices);
 
     // After saving locally, sync to Google Sheets
     try {
-        await saveToGoogleSheet(invoiceToAdd);
-    } catch(error) {
-        // In a real app, you might want to handle this more gracefully,
-        // maybe with a retry queue for failed syncs.
-        console.error("Failed to sync invoice to Google Sheets. The data is saved locally.", error);
+      await saveToGoogleSheet(invoiceToAdd);
+    } catch (error) {
+      // Log the error but rethrow so the UI can alert the user
+      console.error("Failed to sync invoice to Google Sheets. The data is saved locally.", error);
+      throw error;
     }
 
   }, []);
-  
+
   const updateInvoice = useCallback((updatedInvoice: Invoice) => {
     const currentInvoices = getInvoicesFromStorage();
     const newInvoices = currentInvoices.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv);

@@ -72,10 +72,8 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({ invoice, onComplete }) => {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await Promise.all([
-        addInvoice(editedInvoice),
-        saveToGoogleSheet(editedInvoice)
-      ]);
+      // addInvoice handles both local save and syncing to Google Sheets
+      await addInvoice(editedInvoice);
       onComplete();
     } catch (error) {
       console.error("Failed to save invoice:", error);
