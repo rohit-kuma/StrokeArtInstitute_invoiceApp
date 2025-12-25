@@ -185,8 +185,11 @@ const EditModal: React.FC<{ invoice: Invoice, onSave: (invoice: Invoice) => void
     });
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setEditedInvoice(prev => ({ ...prev, [name]: value }));
+        const { name, value, type } = e.target;
+        setEditedInvoice(prev => ({
+            ...prev,
+            [name]: type === 'number' ? (value === '' ? 0 : parseFloat(value)) : value
+        }));
     };
 
     return (
