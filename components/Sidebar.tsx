@@ -30,7 +30,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, 
     <aside className={`fixed top-0 left-0 z-40 w-64 h-screen bg-white/10 dark:bg-dark-card/50 backdrop-blur-lg border-r border-gray-200/20 dark:border-dark-border/50 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
       <div className="flex justify-between items-center p-4 border-b border-gray-200/10 dark:border-dark-border/30">
         <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-          StrokeArtInstituteInvoice
+          Invoice to Sheet AI
         </h1>
         <button onClick={() => setIsOpen(false)} className="md:hidden p-1 text-gray-500 dark:text-gray-400">
           <CloseIcon />
@@ -43,8 +43,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, 
               <button
                 onClick={() => handleNavClick(item.id as ViewType)}
                 className={`flex items-center w-full px-4 py-3 my-1 rounded-lg transition-all duration-200 ${currentView === item.id
-                    ? 'bg-accent-blue/20 text-accent-blue shadow-glow'
-                    : 'hover:bg-gray-200/50 dark:hover:bg-dark-border/50'
+                  ? 'bg-accent-blue/20 text-accent-blue shadow-glow'
+                  : 'hover:bg-gray-200/50 dark:hover:bg-dark-border/50'
                   }`}
               >
                 <span className="mr-3">{item.icon}</span>
