@@ -1,13 +1,13 @@
 import { Invoice } from '../types';
 
 interface GoogleSheetPayload {
-  date: string;
-  time: string;
-  vendorName: string;
-  invoiceNumber: string;
-  totalAmount: number;
-  lineItems: string; // JSON string
-  fileName: string;
+  Date: string;
+  Time: string;
+  "Vendor Name": string;
+  "Invoice Number": string;
+  "Total Amount": number;
+  "Line Items": string; // JSON string
+  "File Name": string;
 }
 
 export const saveToGoogleSheet = async (invoice: Invoice): Promise<void> => {
@@ -18,37 +18,38 @@ export const saveToGoogleSheet = async (invoice: Invoice): Promise<void> => {
     throw new Error('Google Sheet Connector URL is not configured.');
   }
 
+  // Update logic: Use keys that match the Google Sheet Headers exactly
   const payload: GoogleSheetPayload = {
-    date: invoice.invoiceDate || '',
-    time: invoice.invoiceTime || '',
-    vendorName: invoice.vendorName || '',
-    invoiceNumber: invoice.invoiceNumber || '',
-    totalAmount: invoice.totalAmount || 0,
-    lineItems: JSON.stringify(invoice.lineItems),
-    fileName: invoice.fileName || 'Manual Entry',
+    "Date": invoice.invoiceDate || '',
+    "Time": invoice.invoiceTime || '',
+    "Vendor Name": invoice.vendorName || '',
+    "Invoice Number": invoice.invoiceNumber || '',
+    "Total Amount": invoice.totalAmount || 0,
+    "Line Items": JSON.stringify(invoice.lineItems),
+    "File Name": invoice.fileName || 'Manual Entry',
   };
 
   try {
-    // Google Apps Script requires no-cors for simple posts usually, 
-    // but that prevents reading the response. 
-    // Usually standard fetch works if the script is set to "Anyone" and returns JSON.
-    // However, CORS issues are common. simple 'no-cors' is safer if we just want to fire and forget
-    // or if we accept opaque response.
-    // Ideally the script should return JSONP or support CORS.
-    // For now, we will try a standard POST.
+    console.log("Saving to Google Sheet...", payload);
 
-    // Note: 'Content-Type': 'application/json' generally triggers preflight which GAS doesn't handle well.
-    // Using 'application/x-www-form-urlencoded' or 'text/plain' is often more reliable for GAS.
-    const response = await fetch(GOOGLE_SCRIPT_URL, {
+    // Use no-cors to treat as a "simple request" and avoid OPTIONS preflight
+    // which can sometimes cause double-invocations in Apps Scripts or CORS errors.
+    // Note: With no-cors, we cannot read the response status (it will be opaque),
+    // but the request will be sent.
+    await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8', // Ensure simple request
+      },
       body: JSON.stringify(payload),
     });
 
-    if (!response.ok) {
-      throw new Error(`Server responded with ${response.status}`);
-    }
+    console.log("Request sent to Google Sheet.");
+
   } catch (error) {
     console.error('Error saving to Google Sheet:', error);
+    // With no-cors, network errors might still catch here, but 4xx/5xx wont.
     throw error;
   }
 };

@@ -60,23 +60,6 @@ const invoiceSchema = {
 
 export const parseInvoice = async (input: File[] | string): Promise<Partial<Invoice>> => {
 
-    // Fallback for development if no API key is present
-    if (!apiKey) {
-        console.warn("No VITE_API_KEY found. Using mock data for testing.");
-        await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
-        return {
-            vendorName: "Mock Vendor Inc.",
-            invoiceDate: new Date().toISOString().split('T')[0],
-            invoiceTime: "12:00",
-            invoiceNumber: "INV-MOCK-001",
-            totalAmount: 150.00,
-            lineItems: [
-                { description: "Mock Service A", quantity: 1, unitPrice: 50, subtotal: 50 },
-                { description: "Mock Product B", quantity: 2, unitPrice: 50, subtotal: 100 }
-            ],
-            fileName: typeof input === 'string' ? "Text Input" : input[0].name
-        };
-    }
 
     const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
 
