@@ -59,16 +59,22 @@ const invoiceSchema = {
     required: ['vendorName', 'invoiceDate', 'totalAmount', 'lineItems'],
 };
 
-export const parseInvoice = async (input: File[] | string): Promise<Partial<Invoice>> => {
+export const parseInvoice = async (input: File[] | string, recentVendors: string[] = []): Promise<Partial<Invoice>> => {
 
 
     const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+
+    // Construct vendor context string
+    const vendorContext = recentVendors.length > 0
+        ? `\n        Common recent vendors for this user include: ${recentVendors.join(', ')}. Use this list to help identify the vendor if the document is unclear.`
+        : '';
 
     const prompt = `
         You are an expert invoice processing AI. Your task is to accurately extract structured data from the provided content.
         The content could be plain text, an image of an invoice, or a payment receipt.
         
         The current date is ${today}. Please use this as the reference for "today".
+        ${vendorContext}
 
         Please extract the following information and return it as a single, valid JSON object that strictly adheres to the provided schema. Do not wrap it in markdown backticks.
         - vendorName: The name of the company or person that was paid. Treat the name in phrases like "Sent to [Name]","received from [Name]", "Paid to [Name]", or "paid by [Name]" as the vendor.

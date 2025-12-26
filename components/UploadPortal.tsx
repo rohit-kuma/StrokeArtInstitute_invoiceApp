@@ -55,7 +55,7 @@ const UploadPortal: React.FC = () => {
         setIsLoading(true);
         setError(null);
         setParsedInvoices([]);
-        
+
         // --- AI Memory Feature ---
         // Get the last 20 invoices to create a list of recent vendors.
         const recentInvoices = invoices.slice(-20);
@@ -87,7 +87,7 @@ const UploadPortal: React.FC = () => {
                 for (const file of files) {
                     try {
                         // Pass each file individually, providing recent vendors as context
-                        const result = await parseInvoice([file], recentVendorNames); 
+                        const result = await parseInvoice([file], recentVendorNames);
                         parsedResults.push({
                             id: `parsed-${Date.now()}-${file.name}`,
                             status: 'parsed',
@@ -101,7 +101,7 @@ const UploadPortal: React.FC = () => {
                         });
                     } catch (e: any) {
                         console.error(`Failed to parse ${file.name}:`, e);
-                        // Future improvement: Show which files failed in the UI
+                        setError(`Failed to parse ${file.name}: ${e.message}`);
                     }
                 }
                 setParsedInvoices(parsedResults);
@@ -112,7 +112,7 @@ const UploadPortal: React.FC = () => {
             setIsLoading(false);
         }
     };
-    
+
     const toggleListen = () => {
         if (!recognition) {
             setError("Speech recognition is not supported in your browser.");
@@ -143,11 +143,11 @@ const UploadPortal: React.FC = () => {
             }
             setTextInput(textInput + finalTranscript);
         };
-        
+
         recognition.onerror = (event: any) => {
-             console.error('Speech recognition error', event.error);
-             setError(`Speech recognition error: ${event.error}`);
-             setIsListening(false);
+            console.error('Speech recognition error', event.error);
+            setError(`Speech recognition error: ${event.error}`);
+            setIsListening(false);
         };
 
         return () => {
@@ -175,10 +175,10 @@ const UploadPortal: React.FC = () => {
                 <h2 className="text-3xl font-bold text-gray-800 dark:text-white">Review Parsed Invoices</h2>
                 <p className="text-gray-600 dark:text-gray-400 -mt-6">Review the AI-extracted data for each file below. You can make corrections before saving.</p>
                 {parsedInvoices.map((invoice) => (
-                    <InvoiceTable 
-                        key={invoice.id} 
-                        invoice={invoice} 
-                        onComplete={() => handleRemoveParsedInvoice(invoice.id)} 
+                    <InvoiceTable
+                        key={invoice.id}
+                        invoice={invoice}
+                        onComplete={() => handleRemoveParsedInvoice(invoice.id)}
                     />
                 ))}
             </div>
@@ -189,7 +189,7 @@ const UploadPortal: React.FC = () => {
         <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold mb-2 text-gray-800 dark:text-white">Invoice Upload Portal</h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">Upload, type, or speak your invoice details to be parsed by AI.</p>
-            
+
             <div className="space-y-6">
                 <div {...getRootProps()} className={`relative flex flex-col items-center justify-center w-full p-12 border-2 border-dashed rounded-xl transition-colors duration-300 cursor-pointer ${isDragActive ? 'border-accent-blue bg-accent-blue/10' : 'border-gray-300 dark:border-dark-border hover:border-accent-blue/50 dark:hover:border-accent-blue'}`}>
                     <input {...getInputProps()} />
@@ -228,7 +228,7 @@ const UploadPortal: React.FC = () => {
                         <MicIcon className="w-5 h-5" />
                     </button>
                 </div>
-                
+
                 {error && <div className="p-3 text-red-700 bg-red-100 dark:bg-red-900/20 dark:text-red-400 border border-red-300 dark:border-red-500/50 rounded-md">{error}</div>}
 
                 <button onClick={handleParse} disabled={isLoading} className="w-full bg-accent-blue text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-accent-glow">
