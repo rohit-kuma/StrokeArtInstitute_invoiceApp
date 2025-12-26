@@ -106,6 +106,9 @@ const UploadPortal: React.FC = () => {
                 }
                 setParsedInvoices(parsedResults);
             }
+            // Reset inputs after successful parsing so the form is clean when they return
+            setFiles([]);
+            setTextInput('');
         } catch (e: any) {
             setError(e.message || 'An unknown error occurred.');
         } finally {
