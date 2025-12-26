@@ -101,7 +101,8 @@ export const parseInvoice = async (input: File[] | string, recentVendors: string
         'gemini-2.5-flash',
         'gemini-2.0-flash-001',
         'gemini-flash-latest',
-        'gemini-2.0-flash-lite-preview-02-05'
+        'gemini-2.0-flash-lite-preview-02-05',
+        'gemini-2.5-flash-lite'
     ];
 
     for (const model of modelPriority) {
