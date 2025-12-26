@@ -9,7 +9,7 @@ if (!apiKey) {
 }
 
 const ai = new GoogleGenAI({ apiKey: apiKey || '' });
-const modelName = 'gemini-2.5-flash';
+const modelName = 'gemini-1.5-flash';
 
 /**
  * Converts a File object to the GoogleGenAI.Part format for API calls.
