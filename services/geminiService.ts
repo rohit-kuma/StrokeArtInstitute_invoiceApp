@@ -9,7 +9,7 @@ if (!apiKey) {
 }
 
 const ai = new GoogleGenAI({ apiKey: apiKey || '' });
-const modelName = 'gemini-2.0-flash-001';
+// Model selection is now handled dynamically within parseInvoice fallback logic
 
 /**
  * Converts a File object to the GoogleGenAI.Part format for API calls.
@@ -93,32 +93,47 @@ export const parseInvoice = async (input: File[] | string, recentVendors: string
     }
     parts.push({ text: prompt });
 
-    try {
-        const response = await ai.models.generateContent({
-            model: modelName,
-            contents: { parts },
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: invoiceSchema,
-            },
-        });
+    let lastError: any = null;
 
-        const jsonText = response.text.trim();
-        if (!jsonText) {
-            throw new Error('Received an empty response from the AI.');
-        }
+    // Priority: Top Performer -> Backup -> Stable Fallback
+    const modelPriority = [
+        'gemini-3-flash-preview',
+        'gemini-2.5-flash',
+        'gemini-2.0-flash-001'
+    ];
 
-        const parsedData = JSON.parse(jsonText);
-        return parsedData as Partial<Invoice>;
+    for (const model of modelPriority) {
+        try {
+            console.log(`Attempting invoice parsing with model: ${model}`);
 
-    } catch (e: any) {
-        console.error("Error calling Gemini API:", e);
-        if (e.message.includes('SAFETY')) {
-            throw new Error('The request was blocked due to safety settings.');
+            const response = await ai.models.generateContent({
+                model: model,
+                contents: { parts },
+                config: {
+                    responseMimeType: 'application/json',
+                    responseSchema: invoiceSchema,
+                },
+            });
+
+            const jsonText = response.text.trim();
+            if (!jsonText) {
+                throw new Error('Received an empty response from the AI.');
+            }
+
+            const parsedData = JSON.parse(jsonText);
+            return parsedData as Partial<Invoice>;
+
+        } catch (e: any) {
+            console.warn(`Model ${model} failed:`, e.message);
+            lastError = e;
+            // Continue to next model in list
         }
-        if (e.message.includes('400')) {
-            throw new Error('There was an issue with the request sent to the AI (Bad Request).');
-        }
-        throw new Error(`Failed to parse the invoice: ${e.message}`);
     }
+
+    // If loop finishes, all models failed
+    console.error("All models failed. Last error:", lastError);
+    if (lastError?.message?.includes('SAFETY')) {
+        throw new Error('The request was blocked due to safety settings.');
+    }
+    throw new Error(`Failed to parse invoice after trying multiple models. Last error: ${lastError?.message}`);
 };
