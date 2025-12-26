@@ -12,6 +12,25 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, setIsOpen }) => {
   const { theme, toggleTheme } = useTheme();
+  const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
 
   const navItems = [
     { id: 'upload', label: 'Upload Portal', icon: <UploadIcon /> },
@@ -56,11 +75,23 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, isOpen, 
         <div className="mt-auto">
           <button
             onClick={toggleTheme}
-            className="flex items-center justify-center w-full px-4 py-3 rounded-lg bg-gray-200/50 dark:bg-dark-border/50 hover:bg-gray-300/50 dark:hover:bg-dark-border"
+            className="flex items-center justify-center w-full px-4 py-3 rounded-lg bg-gray-200/50 dark:bg-dark-border/50 hover:bg-gray-300/50 dark:hover:bg-dark-border mb-2"
           >
             {theme === 'light' ? <MoonIcon /> : <SunIcon />}
             <span className="ml-3">Switch to {theme === 'light' ? 'Dark' : 'Light'} Mode</span>
           </button>
+
+          {deferredPrompt && (
+            <button
+              onClick={handleInstallClick}
+              className="flex items-center justify-center w-full px-4 py-3 rounded-lg bg-accent-blue text-white hover:bg-blue-600 transition-colors shadow-glow"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              <span className="ml-3 font-bold">Install App</span>
+            </button>
+          )}
         </div>
       </nav>
     </aside>
