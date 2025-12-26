@@ -95,11 +95,13 @@ export const parseInvoice = async (input: File[] | string, recentVendors: string
 
     let lastError: any = null;
 
-    // Priority: Top Performer -> Backup -> Stable Fallback
+    // Priority: Top Performer -> Backup -> Stable Fallback -> Generic Latest -> Lite (Max Coverage)
     const modelPriority = [
         'gemini-3-flash-preview',
         'gemini-2.5-flash',
-        'gemini-2.0-flash-001'
+        'gemini-2.0-flash-001',
+        'gemini-flash-latest',
+        'gemini-2.0-flash-lite-preview-02-05'
     ];
 
     for (const model of modelPriority) {
