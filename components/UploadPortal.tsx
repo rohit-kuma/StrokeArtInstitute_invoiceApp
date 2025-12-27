@@ -72,6 +72,15 @@ const UploadPortal: React.FC = () => {
                 const now = new Date();
                 const defaultTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
+                // Sanitize AI time: strip complexity like seconds or "AM/PM" to ensure HH:MM for input type="time"
+                const rawTime = result.invoiceTime;
+                let sanitizedTime = null;
+                if (rawTime && rawTime.toLowerCase() !== 'null' && rawTime.trim() !== '') {
+                    // Extract HH:mm
+                    const timeMatch = rawTime.match(/(\d{1,2}:\d{2})/);
+                    if (timeMatch) sanitizedTime = timeMatch[0];
+                }
+
                 const newInvoice: Invoice = {
                     ...result, // Spread first to allow defaults to override
                     id: `parsed-${Date.now()}`,
@@ -82,8 +91,8 @@ const UploadPortal: React.FC = () => {
                     // Ensure invoiceNumber is not 'null' string
                     invoiceNumber: (result.invoiceNumber && result.invoiceNumber.toLowerCase() !== 'null') ? result.invoiceNumber : null,
                     invoiceDate: result.invoiceDate || null,
-                    // Time default logic: Explicitly force HH:MM format for <input type="time">
-                    invoiceTime: (result.invoiceTime && result.invoiceTime.toLowerCase() !== 'null' && result.invoiceTime.trim() !== '') ? result.invoiceTime : defaultTime,
+                    // Time default logic: Use sanitized HH:MM or default
+                    invoiceTime: sanitizedTime || defaultTime,
                     totalAmount: result.totalAmount || null,
                     lineItems: result.lineItems || [],
                 };
@@ -98,6 +107,14 @@ const UploadPortal: React.FC = () => {
                         const now = new Date();
                         const defaultTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
+                        // Sanitize AI time for file loop
+                        const rawTime = result.invoiceTime;
+                        let sanitizedTime = null;
+                        if (rawTime && rawTime.toLowerCase() !== 'null' && rawTime.trim() !== '') {
+                            const timeMatch = rawTime.match(/(\d{1,2}:\d{2})/);
+                            if (timeMatch) sanitizedTime = timeMatch[0];
+                        }
+
                         parsedResults.push({
                             ...result, // Spread first to allow defaults to override
                             id: `parsed-${Date.now()}-${file.name}`,
@@ -106,7 +123,7 @@ const UploadPortal: React.FC = () => {
                             vendorName: (result.vendorName && result.vendorName.toLowerCase() !== 'null') ? result.vendorName : null,
                             invoiceNumber: (result.invoiceNumber && result.invoiceNumber.toLowerCase() !== 'null') ? result.invoiceNumber : null,
                             invoiceDate: result.invoiceDate || null,
-                            invoiceTime: (result.invoiceTime && result.invoiceTime.toLowerCase() !== 'null' && result.invoiceTime.trim() !== '') ? result.invoiceTime : defaultTime,
+                            invoiceTime: sanitizedTime || defaultTime,
                             totalAmount: result.totalAmount || null,
                             lineItems: result.lineItems || [],
                         });
