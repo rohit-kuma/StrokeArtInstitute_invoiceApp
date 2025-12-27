@@ -18,7 +18,7 @@ declare global {
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 const recognition = SpeechRecognition ? new SpeechRecognition() : null;
 if (recognition) {
-    recognition.continuous = true;
+    recognition.continuous = false; // Changed to false to prevent Android duplication
     recognition.interimResults = true;
 }
 
