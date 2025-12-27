@@ -70,15 +70,18 @@ const UploadPortal: React.FC = () => {
                 // Handle single text input, providing recent vendors as context
                 const result = await parseInvoice(textInput, recentVendorNames);
                 const newInvoice: Invoice = {
+                    ...result, // Spread first!
                     id: `parsed-${Date.now()}`,
                     status: 'parsed',
                     fileName: 'Text/Voice Input',
-                    vendorName: null,
-                    invoiceNumber: null,
-                    invoiceDate: null,
-                    invoiceTime: (result.invoiceTime && result.invoiceTime.toLowerCase() !== 'null' && result.invoiceTime.trim() !== '') ? result.invoiceTime : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }), // Default to now if missing or 'null'
-                    totalAmount: null,
-                    ...result,
+                    // Ensure vendorName is not 'null' string
+                    vendorName: (result.vendorName && result.vendorName.toLowerCase() !== 'null') ? result.vendorName : null,
+                    // Ensure invoiceNumber is not 'null' string
+                    invoiceNumber: (result.invoiceNumber && result.invoiceNumber.toLowerCase() !== 'null') ? result.invoiceNumber : null,
+                    invoiceDate: result.invoiceDate || null,
+                    // Time default logic (now safe from overwrite)
+                    invoiceTime: (result.invoiceTime && result.invoiceTime.toLowerCase() !== 'null' && result.invoiceTime.trim() !== '') ? result.invoiceTime : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                    totalAmount: result.totalAmount || null,
                     lineItems: result.lineItems || [],
                 };
                 setParsedInvoices([newInvoice]);
@@ -90,15 +93,15 @@ const UploadPortal: React.FC = () => {
                         // Pass each file individually, providing recent vendors as context
                         const result = await parseInvoice([file], recentVendorNames);
                         parsedResults.push({
+                            ...result, // Spread first!
                             id: `parsed-${Date.now()}-${file.name}`,
                             status: 'parsed',
                             fileName: file.name,
-                            vendorName: null,
-                            invoiceNumber: null,
-                            invoiceDate: null,
-                            invoiceTime: (result.invoiceTime && result.invoiceTime.toLowerCase() !== 'null' && result.invoiceTime.trim() !== '') ? result.invoiceTime : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }), // Default to now if missing or 'null'
-                            totalAmount: null,
-                            ...result,
+                            vendorName: (result.vendorName && result.vendorName.toLowerCase() !== 'null') ? result.vendorName : null,
+                            invoiceNumber: (result.invoiceNumber && result.invoiceNumber.toLowerCase() !== 'null') ? result.invoiceNumber : null,
+                            invoiceDate: result.invoiceDate || null,
+                            invoiceTime: (result.invoiceTime && result.invoiceTime.toLowerCase() !== 'null' && result.invoiceTime.trim() !== '') ? result.invoiceTime : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                            totalAmount: result.totalAmount || null,
                             lineItems: result.lineItems || [],
                         });
                     } catch (e: any) {
