@@ -62,12 +62,20 @@ export const useInvoices = () => {
     const invoiceToAdd = { ...invoice };
 
     // Auto-increment logic
+    // Auto-increment logic for missing IDs
+    // We use a separate counter prefixed with '#' to avoid colliding with real invoice numbers.
     if (!invoiceToAdd.invoiceNumber || invoiceToAdd.invoiceNumber.toLowerCase() === 'null') {
-      const maxId = currentInvoices.reduce((max, inv) => {
-        const invNum = parseInt(inv.invoiceNumber || '0', 10);
-        return !isNaN(invNum) && invNum > max ? invNum : max;
+      const maxGeneratedId = currentInvoices.reduce((max, inv) => {
+        const invNumStr = inv.invoiceNumber || '';
+        // Only count IDs that look like our generated format: #1, #2, etc.
+        if (invNumStr.startsWith('#')) {
+          const numPart = parseInt(invNumStr.substring(1), 10);
+          return !isNaN(numPart) && numPart > max ? numPart : max;
+        }
+        return max;
       }, 0);
-      invoiceToAdd.invoiceNumber = (maxId + 1).toString();
+
+      invoiceToAdd.invoiceNumber = `#${maxGeneratedId + 1}`;
     }
 
     try {
