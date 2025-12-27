@@ -69,8 +69,11 @@ const UploadPortal: React.FC = () => {
             if (textInput.trim()) {
                 // Handle single text input, providing recent vendors as context
                 const result = await parseInvoice(textInput, recentVendorNames);
+                const now = new Date();
+                const defaultTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
                 const newInvoice: Invoice = {
-                    ...result, // Spread first!
+                    ...result, // Spread first to allow defaults to override
                     id: `parsed-${Date.now()}`,
                     status: 'parsed',
                     fileName: 'Text/Voice Input',
@@ -79,8 +82,8 @@ const UploadPortal: React.FC = () => {
                     // Ensure invoiceNumber is not 'null' string
                     invoiceNumber: (result.invoiceNumber && result.invoiceNumber.toLowerCase() !== 'null') ? result.invoiceNumber : null,
                     invoiceDate: result.invoiceDate || null,
-                    // Time default logic (now safe from overwrite)
-                    invoiceTime: (result.invoiceTime && result.invoiceTime.toLowerCase() !== 'null' && result.invoiceTime.trim() !== '') ? result.invoiceTime : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                    // Time default logic: Explicitly force HH:MM format for <input type="time">
+                    invoiceTime: (result.invoiceTime && result.invoiceTime.toLowerCase() !== 'null' && result.invoiceTime.trim() !== '') ? result.invoiceTime : defaultTime,
                     totalAmount: result.totalAmount || null,
                     lineItems: result.lineItems || [],
                 };
@@ -92,15 +95,18 @@ const UploadPortal: React.FC = () => {
                     try {
                         // Pass each file individually, providing recent vendors as context
                         const result = await parseInvoice([file], recentVendorNames);
+                        const now = new Date();
+                        const defaultTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
                         parsedResults.push({
-                            ...result, // Spread first!
+                            ...result, // Spread first to allow defaults to override
                             id: `parsed-${Date.now()}-${file.name}`,
                             status: 'parsed',
                             fileName: file.name,
                             vendorName: (result.vendorName && result.vendorName.toLowerCase() !== 'null') ? result.vendorName : null,
                             invoiceNumber: (result.invoiceNumber && result.invoiceNumber.toLowerCase() !== 'null') ? result.invoiceNumber : null,
                             invoiceDate: result.invoiceDate || null,
-                            invoiceTime: (result.invoiceTime && result.invoiceTime.toLowerCase() !== 'null' && result.invoiceTime.trim() !== '') ? result.invoiceTime : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                            invoiceTime: (result.invoiceTime && result.invoiceTime.toLowerCase() !== 'null' && result.invoiceTime.trim() !== '') ? result.invoiceTime : defaultTime,
                             totalAmount: result.totalAmount || null,
                             lineItems: result.lineItems || [],
                         });
