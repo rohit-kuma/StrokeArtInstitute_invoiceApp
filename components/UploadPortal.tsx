@@ -135,30 +135,34 @@ const UploadPortal: React.FC = () => {
         if (!recognition) return;
 
         recognition.onresult = (event: any) => {
-            let interimTranscript = '';
             let finalTranscript = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
                     finalTranscript += event.results[i][0].transcript;
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
                 }
             }
-            setTextInput(textInput + finalTranscript);
+            // Use functional update to avoid dependency on textInput
+            if (finalTranscript) {
+                setTextInput(prev => prev + (prev && !prev.endsWith(' ') ? ' ' : '') + finalTranscript);
+            }
         };
 
         recognition.onerror = (event: any) => {
             console.error('Speech recognition error', event.error);
-            setError(`Speech recognition error: ${event.error}`);
-            setIsListening(false);
+            // Don't stop on 'no-speech' errors as they are common
+            if (event.error !== 'no-speech') {
+                setError(`Speech recognition error: ${event.error}`);
+                setIsListening(false);
+            }
         };
 
+        // Only cleanup on unmount, NOT on every text change
         return () => {
             if (recognition) {
                 recognition.stop();
             }
         };
-    }, [textInput]);
+    }, []); // Empty dependency array ensures this only runs once on mount
 
     const handleRemoveParsedInvoice = (idToRemove: string) => {
         setParsedInvoices(prev => prev.filter(inv => inv.id !== idToRemove));
