@@ -66,7 +66,7 @@ export const useInvoices = () => {
     // We use a separate counter prefixed with '#' to avoid colliding with real invoice numbers.
     if (!invoiceToAdd.invoiceNumber || invoiceToAdd.invoiceNumber.toLowerCase() === 'null') {
       const maxGeneratedId = currentInvoices.reduce((max, inv) => {
-        const invNumStr = inv.invoiceNumber || '';
+        const invNumStr = String(inv.invoiceNumber || '');
         // Only count IDs that look like our generated format: #1, #2, etc.
         if (invNumStr.startsWith('#')) {
           const numPart = parseInt(invNumStr.substring(1), 10);

@@ -76,6 +76,7 @@ const UploadPortal: React.FC = () => {
                     vendorName: null,
                     invoiceNumber: null,
                     invoiceDate: null,
+                    invoiceTime: result.invoiceTime || new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }), // Default to now if missing
                     totalAmount: null,
                     ...result,
                     lineItems: result.lineItems || [],
@@ -95,6 +96,7 @@ const UploadPortal: React.FC = () => {
                             vendorName: null,
                             invoiceNumber: null,
                             invoiceDate: null,
+                            invoiceTime: result.invoiceTime || new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }), // Default to now if missing
                             totalAmount: null,
                             ...result,
                             lineItems: result.lineItems || [],
