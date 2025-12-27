@@ -63,19 +63,20 @@ export const useInvoices = () => {
 
     // Auto-increment logic
     // Auto-increment logic for missing IDs
-    // We use a separate counter prefixed with '#' to avoid colliding with real invoice numbers.
+    // We use a separate counter prefixed with 'REF-' to avoid colliding with real invoice numbers.
+    // changed from '#' to 'REF-' to prevent Google Sheets from interpreting it as a formula error
     if (!invoiceToAdd.invoiceNumber || invoiceToAdd.invoiceNumber.toLowerCase() === 'null') {
       const maxGeneratedId = currentInvoices.reduce((max, inv) => {
         const invNumStr = String(inv.invoiceNumber || '');
-        // Only count IDs that look like our generated format: #1, #2, etc.
-        if (invNumStr.startsWith('#')) {
-          const numPart = parseInt(invNumStr.substring(1), 10);
+        // Only count IDs that look like our generated format: REF-1, REF-2, etc.
+        if (invNumStr.startsWith('REF-')) {
+          const numPart = parseInt(invNumStr.substring(4), 10);
           return !isNaN(numPart) && numPart > max ? numPart : max;
         }
         return max;
       }, 0);
 
-      invoiceToAdd.invoiceNumber = `#${maxGeneratedId + 1}`;
+      invoiceToAdd.invoiceNumber = `REF-${maxGeneratedId + 1}`;
     }
 
     try {

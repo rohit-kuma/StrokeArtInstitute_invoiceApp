@@ -24,9 +24,19 @@ export const saveToGoogleSheet = async (invoice: Invoice, action: 'create' | 'up
   }
 
   // Update logic: Use keys that match the Google Sheet Headers exactly
+  // Sanitize Time to HH:mm locally as well
+  let timeToSend = invoice.invoiceTime;
+  if (timeToSend && timeToSend !== 'null' && timeToSend.includes(':')) {
+    // match HH:mm pattern
+    const match = timeToSend.match(/(\d{1,2}:\d{2})/);
+    if (match) timeToSend = match[0];
+  } else if (!timeToSend || timeToSend === 'null') {
+    timeToSend = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+  }
+
   const payload: GoogleSheetPayload & { action: string; id?: string } = {
     "Date": invoice.invoiceDate || '',
-    "Time": (invoice.invoiceTime && invoice.invoiceTime !== 'null') ? invoice.invoiceTime : new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),
+    "Time": timeToSend || '',
     "Vendor Name": invoice.vendorName || '',
     "Invoice Number": invoice.invoiceNumber || '',
     "Total Amount": invoice.totalAmount || 0,
@@ -37,7 +47,7 @@ export const saveToGoogleSheet = async (invoice: Invoice, action: 'create' | 'up
   };
 
   try {
-    console.log(`Sending ${action} request to Google Sheet...`, payload);
+    console.log(`Sending ${action} request to Google Sheet... Payload:`, JSON.stringify(payload));
 
     // IMPORTANT: removed 'no-cors' mode so we can read the response
     const response = await fetch(GOOGLE_SCRIPT_URL, {
