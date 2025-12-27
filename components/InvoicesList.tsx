@@ -8,11 +8,11 @@ const formatDateForDisplay = (dateString: string | null): string => {
         const date = new Date(dateString);
         if (isNaN(date.getTime())) return dateString;
 
-        // Format to YYYY-MM-DD
+        // Format to DD-MM-YYYY
         const year = date.getFullYear();
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        return `${day}-${month}-${year}`;
     } catch (e) {
         return dateString;
     }
@@ -20,12 +20,16 @@ const formatDateForDisplay = (dateString: string | null): string => {
 
 const formatTimeForDisplay = (timeString: string | null): string => {
     if (!timeString) return 'N/A';
-    // Handle ISO string from Google Sheets (often 1899 epoch for time-only values)
-    // Example: 1899-12-29T21:42:50.000Z -> 21:42:50
+
+    let timePart = timeString;
+    // Handle ISO string (e.g. 1899-12-29T21:42:50.000Z)
     if (timeString.includes('T')) {
-        return timeString.split('T')[1].substring(0, 8);
+        timePart = timeString.split('T')[1];
     }
-    return timeString;
+
+    // Extract HH:mm (or H:mm) and ignore seconds
+    const match = timePart.match(/(\d{1,2}:\d{2})/);
+    return match ? match[0] : timePart;
 };
 
 const InvoicesList: React.FC = () => {
